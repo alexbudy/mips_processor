@@ -7,6 +7,5 @@ module ControlUnit(input[4:0] rt,
 				   output [1:0] JumpBranch	
 					); 
 	
-	case	
 
 endmodule
