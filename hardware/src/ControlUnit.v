@@ -11,7 +11,7 @@
 //		(R-type[2] refers to: ADDU,SUBU,AND...)
 //	ALUCtrl[3:0]: See aludec.v
 //	JALCtrl: 1 for JAL
-//	ALUSrcB: 0-RT,1-RS,10-SEXT(IMM),11-ZEXT(IMM),100-32'd0,101-shamt
+//	ALUSrcB: 0'b000-RT,001-RS,010-SEXT(IMM),011-ZEXT(IMM),100-32'd0,101-shamt
 //	RegWrite: 1 except for stores, J,JR,and branches
 //	MemWrite: 1 for stores
 //	MemToReg: 1 for loads
@@ -22,7 +22,8 @@ module ControlUnit(input[4:0] rt,
 	   input[5:0] opcode,
 	   input[5:0] funct,
 	   output PCPlus8, RegDest, ALURegSel,JALCtrl, RegWrite, MemWrite, MemToReg, 
- 	   output [3:0] ALUCtrl, ALUSrcB, LdStCtrl,
+ 	   output [3:0] ALUCtrl,
+	   output [2:0] ALUSrcB, LdStCtrl,
 	   output [1:0] JumpBranch	
 );
 
@@ -81,7 +82,7 @@ always@(*) begin
 			RegWrite = 1'b1;
 			MemWrite = 1'b0;
 			MemtoReg = 1'b1;
-			LdStCtrl = 3'b001;
+			LdStCtrl = 3'b010;
 			JumpBranch = 2'b00;
 		`LBU:
 			PCPlus8 = 1'b0;
@@ -92,7 +93,7 @@ always@(*) begin
 			RegWrite = 1'b1;
 			MemWrite = 1'b0;
 			MemtoReg = 1'b1;
-			LdStCtrl = 3'b001;
+			LdStCtrl = 3'b011;
 			JumpBranch = 2'b00;
 		`LHU:
 			PCPlus8 = 1'b0;
@@ -103,9 +104,21 @@ always@(*) begin
 			RegWrite = 1'b1;
 			MemWrite = 1'b0;
 			MemtoReg = 1'b1;
-			LdStCtrl = 3'b001;
+			LdStCtrl = 3'b100;
 			JumpBranch = 2'b00;
-		`SB, `SH, `SW, `ADDIU: 
+		`SB:
+			PCPlus8 = 1'b0;
+			RegDest = 1'b0;
+			ALURegSel = 1'b0;
+			JALCtrl = 1'b0;
+			ALUSrcB = 3'b010;
+			RegWrite = 1'b0;
+			MemWrite = 1'b1;
+			MemtoReg = 1'b0;
+			LdStCtrl = 3'b101;
+			JumpBranch = 2'b00;
+			
+		`SH, `SW, `ADDIU: 
 		`SLTI: 
 		`SLTIU: 
 		`ANDI: 
