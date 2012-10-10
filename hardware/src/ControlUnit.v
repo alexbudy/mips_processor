@@ -15,8 +15,11 @@
 //	RegWrite: 1 except for stores, J,JR,and branches
 //	MemWrite: 1 for stores
 //	MemToReg: 1 for loads
-//	LdStCtrl: 3'b000-LB,unused, 001-LH, 010-LW, 011-LBU 100-LHU, 101-SB, 110-SH, 111-SW
+//	LdStCtrl: 3'b000-LB, default, 001-LH, 010-LW, 011-LBU 100-LHU, 101-SB, 110-SH, 111-SW
 //	JumpBranch[1:0]: 00-no jump, 01-J,JAL,10-JR,JALR,11-Branch
+
+`include "Opcode.vh"
+`include "ALUop.vh"
    
 module ControlUnit(input[4:0] rt, 
 	   input[5:0] opcode,
