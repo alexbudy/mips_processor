@@ -37,4 +37,8 @@
 `define SLT     6'b101010
 `define SLTU    6'b101011
 
+// J-Type
+`define J 	6'b000010
+`define JAL 	6'b000011
+`define JR 	6'b000000
 `endif //OPCODE

@@ -38,6 +38,10 @@ always@(*) begin
 		`ORI: ALUop = `ALU_OR;
 		`XORI: ALUop = `ALU_XOR;
 		`LUI: ALUop = `ALU_LUI;
+		//Added in proj checkpt 1
+		`BLEZ,`BGTZ,`BLTZ_BGEZ: ALUop = `ALU_SLT;
+		default: ALUop=`ALU_ADDU;
+		//end of Added in proj checkpt 1
 	endcase	
 end
 
