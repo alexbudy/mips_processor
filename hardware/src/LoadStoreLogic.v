@@ -14,6 +14,7 @@ module AddressForMem (input[31:0] word,
 	input[2:0] LdStCtrl,
 	output[31:0] res
 );
+/*
 	always@(*) begin
 		case(LdStCtrl)
 			3'b010, 3'b111: //LW, SW
@@ -23,7 +24,6 @@ module AddressForMem (input[31:0] word,
 			default:
 				res = word;
 	end
-
+*/
 endmodule
 
-module 
