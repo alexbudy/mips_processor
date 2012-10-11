@@ -15,7 +15,8 @@
 module ALU(
     input [31:0] A,B,
     input [3:0] ALUop,
-    output reg [31:0] Out
+    output reg [31:0] Out,
+	output isZero
 );
 
 always@(*)
@@ -33,4 +34,7 @@ always@(*)
 		`ALU_SRA:  Out = $signed(B) >>> A[4:0];
 		`ALU_NOR:  Out = ~(A | B);
 	endcase	
+
+assign isZero = (Out == 32'd0);
+
 endmodule

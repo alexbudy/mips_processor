@@ -34,6 +34,7 @@ ALUdec aludec(.funct(funct),
 		.ALUop(ALUCtrl)
 		); 
 	
+/*
 always@(*) begin
 	case(opcode)
 		`RTYPE:
@@ -117,5 +118,5 @@ always@(*) begin
 		`LUI: 
 	endcase	
 end
-
+*/
 endmodule
