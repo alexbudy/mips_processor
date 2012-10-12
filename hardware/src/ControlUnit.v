@@ -11,7 +11,7 @@
 //		(R-type[2] refers to: ADDU,SUBU,AND...)
 //	ALUCtrl[3:0]: See aludec.v
 //	JALCtrl: 1 for JAL
-//	ALUSrcB: 0'b000-RT,001-RS,010-SEXT(IMM),011-ZEXT(IMM),100-32'd0,101-shamt
+//	ALUSrcB: 3'b000-RT,001-RS,010-SEXT(IMM),011-ZEXT(IMM),100-32'd0,101-shamt
 //	RegWrite: 1 except for stores, J,JR,and branches
 //	MemToReg: 1 for loads
 //	LdStCtrl: 3'b000-LB, default, 001-LH, 010-LW, 011-LBU 100-LHU, 101-SB, 110-SH, 111-SW
@@ -39,20 +39,53 @@ ALUdec aludec(.funct(funct),
 always@(*) begin
 	case(opcode)
 		`RTYPE:
-			PCPlus8 = 1'b0;
-			RegDest = 1'b1;
-			JALCtrl = 1'b0;
-			RegWrite = 1'b1;
-			MemtoReg = 1'b0;
-			LdStCtrl = 3'b000;
-			JumpBranch = 4'b0000;
 			case(funct)
 				`SLL, `SRL, `SRA: ALUSrcB = 3'b101;
 						ALURegSel = 1'b1;
+						PCPlus8 = 1'b0;
+						RegDest = 1'b1;
+						JALCtrl = 1'b0;
+						RegWrite = 1'b1;
+						MemtoReg = 1'b0;
+						LdStCtrl = 3'b000;
+						JumpBranch = 4'b0000;
 				`SLLV, `SRLV, `SRAV: ALUSrcB = 3'b001;
 						ALURegSel = 1'b1;
-				else ALUSrcB = 3'b000;
-						ALURegSel = 1'b0;
+						PCPlus8 = 1'b0;
+						RegDest = 1'b1;
+						JALCtrl = 1'b0;
+						RegWrite = 1'b1;
+						MemtoReg = 1'b0;
+						LdStCtrl = 3'b000;
+						JumpBranch = 4'b0000;
+				`JR:    PCPlus8 = 1'b0;
+					RegDest = 1'b1
+					ALURegSel = 1'b0;
+					JALCtrl = 1'b0;
+					ALUSrcB = 3'b000;
+					RegWrite = 1'b0;
+					MemToReg = 1'b0;
+					LdStCtrl = 3'b000;
+					JumpBranch = 4'b0010;
+				`JALR:  PCPlus8 = 1'b1;
+					RegDest = 1'b1
+					ALURegSel = 1'b0;
+					JALCtrl = 1'b0;
+					ALUSrcB = 3'b000;
+					RegWrite = 1'b1;
+					MemToReg = 1'b0;
+					LdStCtrl = 3'b000;
+					JumpBranch = 4'b0010;
+				default: 
+					PCPlus8 = 1'b0;
+					RegDest = 1'b1;
+					ALURegSel = 1'b0;
+					JALCtrl = 1'b0;
+					ALUSrcB = 3'b000;
+					RegWrite = 1'b1;
+					MemtoReg = 1'b0;
+					LdStCtrl = 3'b000;
+					JumpBranch = 4'b0000;
 			endcase
 		`LB: 
 			PCPlus8 = 1'b0;
@@ -64,7 +97,6 @@ always@(*) begin
 			MemtoReg = 1'b1;
 			LdStCtrl = 3'b000;
 			JumpBranch = 4'b0000;
-			JumpBranch = 2'b00;
 		`LH:
 			PCPlus8 = 1'b0;
 			RegDest = 1'b0;
@@ -75,7 +107,6 @@ always@(*) begin
 			MemtoReg = 1'b1;
 			LdStCtrl = 3'b001;
 			JumpBranch = 4'b0000;
-			JumpBranch = 2'b00;
 		`LW:
 			PCPlus8 = 1'b0;
 			RegDest = 1'b0;
@@ -86,7 +117,6 @@ always@(*) begin
 			MemtoReg = 1'b1;
 			LdStCtrl = 3'b010;
 			JumpBranch = 4'b0000;
-			JumpBranch = 2'b00;
 		`LBU:
 			PCPlus8 = 1'b0;
 			RegDest = 1'b0;
@@ -97,7 +127,6 @@ always@(*) begin
 			MemtoReg = 1'b1;
 			LdStCtrl = 3'b011;
 			JumpBranch = 4'b0000;
-			JumpBranch = 2'b00;
 		`LHU:
 			PCPlus8 = 1'b0;
 			RegDest = 1'b0;
@@ -108,7 +137,6 @@ always@(*) begin
 			MemtoReg = 1'b1;
 			LdStCtrl = 3'b100;
 			JumpBranch = 4'b0000;
-			JumpBranch = 2'b00;
 		`SB:
 			PCPlus8 = 1'b0;
 			RegDest = 1'b0;
@@ -119,7 +147,6 @@ always@(*) begin
 			MemtoReg = 1'b0;
 			LdStCtrl = 3'b101;
 			JumpBranch = 4'b0000;
-			JumpBranch = 2'b00;
 			
 		`SH:
 			PCPlus8 = 1'b0;
@@ -131,7 +158,6 @@ always@(*) begin
 			MemtoReg = 1'b0;
 			LdStCtrl = 3'b110;
 			JumpBranch = 4'b0000;
-			JumpBranch = 2'b00;
 
 		`SW:
 			PCPlus8 = 1'b0;
@@ -143,7 +169,6 @@ always@(*) begin
 			MemtoReg = 1'b0;
 			LdStCtrl = 3'b111;
 			JumpBranch = 4'b0000;
-			JumpBranch = 2'b00;
 		`ADDIU: 
 			PCPlus8 = 1'b0;
 			RegDest = 1'b0;
@@ -154,7 +179,6 @@ always@(*) begin
 			MemtoReg = 1'b0;
 			LdStCtrl = 3'b000;
 			JumpBranch = 4'b0000;
-			JumpBranch = 2'b00;
 		`SLTI: 
 			PCPlus8 = 1'b0;
 			RegDest = 1'b0;
@@ -165,7 +189,6 @@ always@(*) begin
 			MemtoReg = 1'b0;
 			LdStCtrl = 3'b000;
 			JumpBranch = 4'b0000;
-			JumpBranch = 2'b00;
 		`SLTIU: 
 			PCPlus8 = 1'b0;
 			RegDest = 1'b0;
@@ -176,7 +199,6 @@ always@(*) begin
 			MemtoReg = 1'b0;
 			LdStCtrl = 3'b000;
 			JumpBranch = 4'b0000;
-			JumpBranch = 2'b00;
 		`ANDI: 
 			PCPlus8 = 1'b0;
 			RegDest = 1'b0;
@@ -187,7 +209,6 @@ always@(*) begin
 			MemtoReg = 1'b0;
 			LdStCtrl = 3'b000;
 			JumpBranch = 4'b0000;
-			JumpBranch = 2'b00;
 		`ORI: 
 			PCPlus8 = 1'b0;
 			RegDest = 1'b0;
@@ -198,7 +219,6 @@ always@(*) begin
 			MemtoReg = 1'b0;
 			LdStCtrl = 3'b000;
 			JumpBranch = 4'b0000;
-			JumpBranch = 2'b00;
 		`XORI: 
 			PCPlus8 = 1'b0;
 			RegDest = 1'b0;
@@ -209,7 +229,6 @@ always@(*) begin
 			MemtoReg = 1'b0;
 			LdStCtrl = 3'b000;
 			JumpBranch = 4'b0000;
-			JumpBranch = 2'b00;
 		`LUI: 
 			PCPlus8 = 1'b0;
 			RegDest = 1'b0;
@@ -220,7 +239,6 @@ always@(*) begin
 			MemtoReg = 1'b0;
 			LdStCtrl = 3'b000;
 			JumpBranch = 4'b0000;
-			JumpBranch = 2'b00;
 		`J:
 			PCPlus8 = 1'b0;
 			RegDest = 1'b1;
@@ -241,26 +259,6 @@ always@(*) begin
 			MemtoReg = 1'b0;
 			LdStCtrl = 3'b000;
 			JumpBranch = 4'b0001;
-		`JR:
-			PCPlus8 = 1'b0;
-			RegDest = 1'b1;
-			ALURegSel = 1'b0;
-			JALCtrl = 1'b0;
-			ALUSrcB = 3'b011;
-			RegWrite = 1'b0;
-			MemtoReg = 1'b0;
-			LdStCtrl = 3'b000;
-			JumpBranch = 4'b0010;
-		`JALR:
-			PCPlus8 = 1'b1;
-			RegDest = 1'b1;
-			ALURegSel = 1'b0;
-			JALCtrl = 1'b0;
-			ALUSrcB = 3'b011;
-			RegWrite = 1'b1;
-			MemtoReg = 1'b0;
-			LdStCtrl = 3'b000;
-			JumpBranch = l'b0010;
 		`BEQ:
 			PCPlus8 = 1'b0;
 			RegDest = 1'b1;
@@ -310,8 +308,9 @@ always@(*) begin
 			RegWrite = 1'b0;
 			MemtoReg = 1'b0;
 			LdStCtrl = 3'b000;
-			if (rt=5'b00000)
+			if (rt=5'b00000)begin
 			JumpBranch = 4'b0111;
+			end
 			else Jumpbranch = 4'b1000;
 		
 	endcase	

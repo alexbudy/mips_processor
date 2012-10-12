@@ -30,6 +30,7 @@ always@(*) begin
 				`NOR: ALUop = `ALU_NOR;
 				`SLT: ALUop = `ALU_SLT;
 				`SLTU: ALUop = `ALU_SLTU;
+				default: ALUop = `ALU_ADDU;
 			endcase
 		`LB, `LH, `LW, `LBU, `LHU, `SB, `SH, `SW, `ADDIU: ALUop = `ALU_ADDU;	
 		`SLTI: ALUop = `ALU_SLT;

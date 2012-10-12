@@ -12,6 +12,8 @@
 `define SB      6'b101000
 `define SH      6'b101001
 `define SW      6'b101011
+`define JR 	6'b001000
+`define JALR 	6'b001001
 // I-type
 `define ADDIU   6'b001001
 `define SLTI    6'b001010
@@ -40,5 +42,9 @@
 // J-Type
 `define J 	6'b000010
 `define JAL 	6'b000011
-`define JR 	6'b000000
+`define BEQ 	6'b000100
+`define BNE 	6'b000101
+`define BLEZ 	6'b000110
+`define BGTZ 	6'b000111
+`define BLTZ_BGEZ 6'b000001
 `endif //OPCODE
