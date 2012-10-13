@@ -18,24 +18,24 @@ module ALUTestbench();
 	reg [31:0] A, B;
 	reg [3:0] ALUop;
 	wire [31:0] Out;
-	wire isZero;	 	
+	wire AequalsB;	 	
 	reg [31:0] REFout;
-	reg REFzero;
+	reg REFAequalsB;
 
   ALU DUT(.A(A),
               .B(B),
               .ALUop(ALUop),
               .Out(Out),
-              .isZero(isZero));
+              .AequalsB(AequalsB));
     
 task checkOutput;
-        if ( REFout !== Out | isZero !== REFzero ) begin
+        if ( REFout !== Out | AequalsB !== REFAequalsB ) begin
             $display("FAIL: Incorrect result for output or zero");
-            $display("\tA: 0x%d, B: 0x%d, ALUop: 0x%b, Out: 0x%d, isZero: 0x%b, REFout: 0x%d REFzero: 0x%b", A, B, ALUop, Out, isZero, REFout, REFzero);
+            $display("\tA: 0x%d, B: 0x%d, ALUop: 0x%b, Out: 0x%d, AequalsB: 0x%b, REFout: 0x%d REFAequalsB: 0x%b", A, B, ALUop, Out, AequalsB, REFout, REFAequalsB);
         end
 		else begin 
             $display("PASS: output and zero match!");
-            $display("\tA: 0x%d, B: 0x%d, ALUop: 0x%b, Out: 0x%d, isZero: 0x%b, REFout: 0x%d REFzero: 0x%b", A, B, ALUop, Out, isZero, REFout, REFzero);
+            $display("\tA: 0x%d, B: 0x%d, ALUop: 0x%b, Out: 0x%d, AequalsB: 0x%b, REFout: 0x%d REFAequalsB: 0x%b", A, B, ALUop, Out, AequalsB, REFout, REFAequalsB);
 		end
     endtask
   
@@ -47,14 +47,14 @@ task checkOutput;
 	assign B = 32'd4;
 	assign ALUop = 4'd1; //subtraction
 	assign REFout = 32'd1;
-	assign REFzero = 0;	 
+	assign REFAequalsB = 0;	 
 	#1;
 
 	checkOutput();
 	
 	assign B = 32'd5;
 	assign REFout = 32'd0;
-	assign REFzero = 1;
+	assign REFAequalsB = 1;
 	#1;
 	checkOutput();
    
