@@ -16,7 +16,7 @@ module ALU(
     input [31:0] A,B,
     input [3:0] ALUop,
     output reg [31:0] Out,
-	output isZero
+	output AequalsB
 );
 
 always@(*)
@@ -35,6 +35,6 @@ always@(*)
 		`ALU_NOR:  Out = ~(A | B);
 	endcase	
 
-assign isZero = (Out == 32'd0);
+assign AequalsB = (A == B);
 
 endmodule

@@ -26,18 +26,26 @@ module AddressForMem (
 	//align byte/hw/w for mem write, set wire enable bits
 	always@(*) begin
 		case(LdStCtrl)
-			3'b000,3'b001,3'b010,3'b011,3'b100,: //LB,LH,LW,LBU,LHU
-				RTout = RTin;
-				we = 4'b0000;
+			3'b000,3'b001,3'b010,3'b011,3'b100: //LB,LH,LW,LBU,LHU
+				begin
+					RTout = RTin;
+					we = 4'b0000;
+				end
 			3'b111://SW
-				we = 4'b1111;
-				RTout = RTin;
+				begin
+					we = 4'b1111;
+					RTout = RTin;
+				end
 			3'b110://SH
-				we = 4'b1100 >> 2*alu_out[0];
-				RTout = RTin << 16 - 16*alu_out[0];
+				begin
+					we = 4'b1100 >> 2*alu_out[0];
+					RTout = RTin << 16 - 16*alu_out[0];
+				end
 			3'b101://SB
-				we = 4'b1000 >> alu_out[1:0];
-				RTout = RTin << 24 - 8*alu_out[1:0];
+				begin
+					we = 4'b1000 >> alu_out[1:0];
+					RTout = RTin << 24 - 8*alu_out[1:0];
+				end
 		endcase	
 	end
 	//for imem/dmem writing
