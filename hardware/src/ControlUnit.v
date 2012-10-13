@@ -24,10 +24,10 @@
 module ControlUnit(input[4:0] rt, 
 	   input[5:0] opcode,
 	   input[5:0] funct,
-	   output PCPlus8, RegDest, ALURegSel,JALCtrl, RegWrite, MemToReg,
- 	   output [3:0] ALUCtrl, 
-	   output [2:0] ALUSrcB, LdStCtrl,
-	   output [3:0] JumpBranch	
+	   output reg PCPlus8, RegDest, ALURegSel,JALCtrl, RegWrite, MemToReg,
+ 	   output reg [3:0] ALUCtrl, 
+	   output reg [2:0] ALUSrcB, LdStCtrl,
+	   output reg [3:0] JumpBranch	
 );
 
 ALUdec aludec(.funct(funct),
