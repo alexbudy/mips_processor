@@ -26,13 +26,22 @@ module LoadStoreLogicTestbench();
 	reg [31:0] REFRTout;
 	reg [11:0] REFmem_adr; 
 
-  AddressForMem DUT(.RTin(RTin),
+  	AddressForMem DUT(.RTin(RTin),
                     .alu_out(alu_out),
                     .LdStCtrl(LdStCtrl),
                     .mem_adr(mem_adr),
                     .we_i(we_i),
 				    .we_d(we_d),
 				    .RTout(RTout));
+
+
+	reg [1:0] byte_sel;
+	wire [31:0] word_out;
+	reg [31:0] REFword_out;
+	LoadLogic DUT(.word(RTin),
+				  .LdStCtrl(LdStCtrl),
+				  .byte_sel(byte_sel),
+				  .word_out(word_out));
 				
     
 task checkOutput;
@@ -43,6 +52,17 @@ task checkOutput;
 		else begin 
             $display("PASS: outputs match!");
             $display("\tRTin: 0x%h, alu_out: 0x%b, LdStCtrl: 0x%b, mem_adr: 0x%h, we_i: 0x%b, we_d: 0x%b RTout: 0x%h, REFwe_i: 0x%b, REFwe_d: 0x%b, REFRTout: 0x%h, REFmem_adr: 0x%h", RTin, alu_out, LdStCtrl, mem_adr, we_i, we_d, RTout, REFwe_i, REFwe_d, REFRTout, REFmem_adr);
+		end
+    endtask
+
+task checkOutput1;
+        if (REFword_out == word_out) begin
+            $display("FAIL: Incorrect result");
+            $display("\tword: 0x%h, LdStCtrl: 0x%b, byte_sel: 0x%b, word_out: 0x%h, REFword_out: 0x%h", word, LdStCtrl, byte_sel, word_out, REFword_out);
+        end
+		else begin 
+            $display("PASS: Outputs match!!");
+            $display("\tword: 0x%h, LdStCtrl: 0x%b, byte_sel: 0x%b, word_out: 0x%h, REFword_out: 0x%h", word, LdStCtrl, byte_sel, word_out, REFword_out);
 		end
     endtask
   
@@ -60,6 +80,14 @@ task checkOutput;
 	#1;
 
 	checkOutput();
+	
+	//check for a LB, signed with a 1
+	assign LdStCtrl = 3'b000;
+	assign word = 32'hdeadbeef;
+	assign byte_sel = 2'b10;
+	assign REFword_out = 32'hffffffbe;
+	#1;
+	checkOutput1();
 	
     $display("All tests passed!");
     $finish();
