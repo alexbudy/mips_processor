@@ -38,8 +38,8 @@ module AddressForMem (
 				end
 			3'b110://SH
 				begin
-					we = 4'b1100 >> 2*alu_out[0];
-					RTout = RTin << 16 - 16*alu_out[0];
+					we = 4'b1100 >> 2*alu_out[1];
+					RTout = RTin << 16 - 16*alu_out[1];
 				end
 			3'b101://SB
 				begin
@@ -75,24 +75,24 @@ always@(*) begin
 	case(LdStCtrl) 
 		3'b000: //LB
 			begin
-				temp = word >> (31-8*byte_sel);
+				temp = word >> (24-8*byte_sel);
 				word_out = {{24{temp[7]}}, temp[7:0]};
 			end
 		3'b001: //LH
 			begin
-				temp = word >> (31-16*byte_sel);
+				temp = word >> (16-16*byte_sel[1]);
 				word_out = {{16{temp[15]}}, temp[15:0]};
 			end
 		3'b010: //LW
 			word_out = word;
 		3'b011: //LBU
 			begin
-				temp = word >> (31-8*byte_sel);
+				temp = word >> (24-8*byte_sel);
 				word_out = {24'b0, temp[7:0]};
 			end
 		3'b100: //LHU
 			begin
-				temp = word >> (31-16*byte_sel);
+				temp = word >> (16-16*byte_sel[1]);
 				word_out = {16'b0, temp[15:0]};
 			end
 		default:
