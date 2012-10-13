@@ -13,7 +13,7 @@ module JBLogic(
 	input[3:0]	JumpBranch,
 	input[31:0]	ALU_out,
 	input		ALU_zero,
-	output[1:0] Jump_sel
+	output reg [1:0] Jump_sel
 );
 
 always@(*)begin

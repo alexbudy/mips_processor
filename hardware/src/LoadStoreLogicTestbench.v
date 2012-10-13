@@ -38,7 +38,7 @@ module LoadStoreLogicTestbench();
 	reg [1:0] byte_sel;
 	wire [31:0] word_out;
 	reg [31:0] REFword_out;
-	LoadLogic DUT(.word(RTin),
+	LoadLogic DUT2(.word(RTin),
 				  .LdStCtrl(LdStCtrl),
 				  .byte_sel(byte_sel),
 				  .word_out(word_out));
@@ -55,14 +55,15 @@ task checkOutput;
 		end
     endtask
 
-task checkOutput1;
-        if (REFword_out == word_out) begin
-            $display("FAIL: Incorrect result");
-            $display("\tword: 0x%h, LdStCtrl: 0x%b, byte_sel: 0x%b, word_out: 0x%h, REFword_out: 0x%h", word, LdStCtrl, byte_sel, word_out, REFword_out);
+//for the loads
+task checkOutput2;
+        if (REFword_out != word_out) begin
+            $display("FAIL: Incorrect result for load test");
+            $display("\tRTin: 0x%h, LdStCtrl: 0x%b, byte_sel: 0x%b, word_out: 0x%h, REFword_out: 0x%h", RTin, LdStCtrl, byte_sel, word_out, REFword_out);
         end
 		else begin 
-            $display("PASS: Outputs match!!");
-            $display("\tword: 0x%h, LdStCtrl: 0x%b, byte_sel: 0x%b, word_out: 0x%h, REFword_out: 0x%h", word, LdStCtrl, byte_sel, word_out, REFword_out);
+            $display("PASS: Outputs match for load test!");
+            $display("\tRTin: 0x%h, LdStCtrl: 0x%b, byte_sel: 0x%b, word_out: 0x%h, REFword_out: 0x%h", RTin, LdStCtrl, byte_sel, word_out, REFword_out);
 		end
     endtask
   
@@ -83,12 +84,28 @@ task checkOutput1;
 	
 	//check for a LB, signed with a 1
 	assign LdStCtrl = 3'b000;
-	assign word = 32'hdeadbeef;
+	assign RTin = 32'hdeadbeef;
 	assign byte_sel = 2'b10;
 	assign REFword_out = 32'hffffffbe;
 	#1;
-	checkOutput1();
+	checkOutput2();
 	
+	//check for a LB, signed with 0
+	assign RTin = 32'h5eadbeef;
+	assign byte_sel = 2'b00;	
+	assign REFword_out = 32'h0000005e;	
+	#1;
+	checkOutput2();
+	
+	//check for a LH, signed with a 1
+	assign LdStCtrl = 3'b001;
+	assign RTin = 32'hdeadbeef;
+	assign byte_sel = 2'b10;
+	assign REFword_out = 32'hffffbeef;
+	#1;
+	checkOutput2();
+	
+
     $display("All tests passed!");
     $finish();
   end

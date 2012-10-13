@@ -75,24 +75,24 @@ always@(*) begin
 	case(LdStCtrl) 
 		3'b000: //LB
 			begin
-				temp = word >> 31-8*byte_sel;
+				temp = word >> (31-8*byte_sel);
 				word_out = {{24{temp[7]}}, temp[7:0]};
 			end
 		3'b001: //LH
 			begin
-				temp = word >> 31-16*byte_sel;
+				temp = word >> (31-16*byte_sel);
 				word_out = {{16{temp[15]}}, temp[15:0]};
 			end
 		3'b010: //LW
 			word_out = word;
 		3'b011: //LBU
 			begin
-				temp = word >> 31-8*byte_sel;
+				temp = word >> (31-8*byte_sel);
 				word_out = {24'b0, temp[7:0]};
 			end
 		3'b100: //LHU
 			begin
-				temp = word >> 31-16*byte_sel;
+				temp = word >> (31-16*byte_sel);
 				word_out = {16'b0, temp[15:0]};
 			end
 		default:
