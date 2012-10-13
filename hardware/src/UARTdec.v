@@ -17,9 +17,9 @@ module UARTdec(
 	input[7:0] Read,
 	input[2:0] LdStCtrl,
 	input DataInReady, DataOutValid,
-	output [7:0] Write,
-	output [31:0] Out,
-	output DataInValid
+	output reg [7:0] Write,
+	output reg [31:0] Out,
+	output reg DataInValid
 );
 
 	always@(*) begin
