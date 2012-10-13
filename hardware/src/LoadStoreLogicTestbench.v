@@ -79,9 +79,19 @@ task checkOutput2;
 	assign REFRTout = 32'hbeef0000; 
 	assign REFmem_adr =  12'b000000000001;
 	#1;
-
 	checkOutput();
 	
+    // test store half into location 5
+	assign alu_out = 32'h70000005; // writes to imem AND dmem
+	assign RTin = 32'hdeadbeef; //data word 
+	assign LdStCtrl = 3'b110; //SB
+	assign REFwe_i = 4'b1100;
+	assign REFwe_d = 4'b1100;
+	assign REFRTout = 32'hbeef0000; 
+	assign REFmem_adr =  12'b000000000001;
+	#1;
+	checkOutput();
+
 	//check for a LB, signed with a 1
 	assign LdStCtrl = 3'b000;
 	assign RTin = 32'hdeadbeef;
@@ -105,6 +115,29 @@ task checkOutput2;
 	#1;
 	checkOutput2();
 	
+	//check for a LW, trivial case
+	assign LdStCtrl = 3'b010;
+	assign RTin = 32'hdeadbeef;
+	assign byte_sel = 2'b10;
+	assign REFword_out = 32'hdeadbeef;
+	#1;
+	checkOutput2();
+
+	//check for a LBU 
+	assign LdStCtrl = 3'b011;
+	assign RTin = 32'hdeadbeef;
+	assign byte_sel = 2'b10;
+	assign REFword_out = 32'h000000be;
+	#1;
+	checkOutput2();
+
+	//check for a LHU 
+	assign LdStCtrl = 3'b100;
+	assign RTin = 32'hdeadbeef;
+	assign byte_sel = 2'b01;
+	assign REFword_out = 32'h0000dead;
+	#1;
+	checkOutput2();
 
     $display("All tests passed!");
     $finish();

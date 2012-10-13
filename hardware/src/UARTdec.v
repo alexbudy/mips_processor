@@ -38,7 +38,7 @@ module UARTdec(
 				Write = WD[7:0];
 				Out = 32'd0;
 				case(LdStCtrl)
-					3'b101,3'b110,3'b111: DataInValid = 1'b1;
+					3'b101,3'b110,3'b111: DataInValid = 1'b1; //all the stores
 					default: DataInValid = 1'b0;
 				endcase
 				end
