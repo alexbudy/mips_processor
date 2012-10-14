@@ -19,38 +19,44 @@ module UARTdec(
 	input DataInReady, DataOutValid,
 	output reg [7:0] Write,
 	output reg [31:0] Out,
-	output reg DataInValid
+	output reg DataInValid,
+	output reg DataOutReady
 );
 
 	always@(*) begin
 		case(A)
-			32'h80000000:begin	 
-				Out=32'd1 & DataInReady;
+			32'h80000000:begin	//read DataInReady 
+				Out= {31'd0, DataInReady};
 				Write = 8'd0;
 				DataInValid = 1'b0;
+				DataOutReady = 1'b0;
 				end
-			32'h80000004:begin
-				Out = 32'd1 & DataOutValid;
+			32'h80000004:begin  //read DataOutValid
+				Out = {31'd0, DataOutValid};
 				Write = 8'd0;
 				DataInValid = 1'b0;
+				DataOutReady = 1'b0;
 				end
-			32'h80000008:begin
+			32'h80000008:begin  //write to DataIn
 				Write = WD[7:0];
 				Out = 32'd0;
 				case(LdStCtrl)
-					3'b101,3'b110,3'b111: DataInValid = 1'b1;
+					3'b101,3'b110,3'b111: DataInValid = 1'b1; //all the stores
 					default: DataInValid = 1'b0;
 				endcase
+				DataOutReady = 1'b0;
 				end
-			32'h8000000c:begin
-				Out = 32'h000000FF & Read[7:0];
+			32'h8000000c:begin  //read DataOut
+				Out = {24'd0, Read};
 				Write = 8'd0;
 				DataInValid = 1'b0;
+				DataOutReady = 1'b1;
 				end
 			default:begin
 				Out = 32'd0;
 				Write = 8'd0;
 				DataInValid = 1'b0;
+				DataOutReady = 1'b0;
 				end
 		endcase
 	end
