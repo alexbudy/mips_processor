@@ -20,13 +20,14 @@ reg [3:0] ALUCtrl_X, ALUCtrl_Y, JumpBranch_X, JumpBranch_Y, we_i, we_d;
 reg [31:0] PC_X, PCout_X, PCout_Y, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,RT,ALU_out_Y,ALU_out_Z, wd_y, wd_z, RT_shifted, UARTout, MemUARTout, PC_in;
 reg [7:0] UARTwrite, UARTread;
 reg [11:0] mem_adr;
+reg [4:0] a3_Z, a3_Y;
 
 RegFile RegFile(                            
             .clk(clk),                       
             .we(we_reg),
             .ra1(inst_2[25:21]),   
             .ra2(inst_2[20:16]),  
-            .ra3(wd_3),
+            .ra3(a3_Z),
             .wd(wd),  
             .rd1(rd1),
             .rd2(rd2)
@@ -102,12 +103,10 @@ always @(posedge clk)begin
 	inst_Y <= inst_X;
 	JALCtrl_Y <= JALCtrl_X;
 	ALUSrcB_Y <= ALUSrcB_X;
-	LdStCtrl_Y <= LdStCtrl_X;
-	LdStCtrl_Z <= LdStCtrl_Y;
 	ALUCtrl_X <= ALUCtrl_Y;
 	JumpBranch_Y <= JumpBranch_X;
 	ALU_out_Z <= ALU_out_Y;
-	wd_z <= wd_y;
+	a3_Z <= a3_Y;
 
 	ALU_SrcB_Y <= ALU_SrcB_X;
 	LdStCtrl_Y <= LdStCtrl_X;
@@ -117,9 +116,6 @@ always @(posedge clk)begin
 	PCout_Y <= PCout_X;
 	PCoutplus4_Y <= PCoutplus4_X;
 	PCoutplus4_Z <= PCoutplus4_Y;
-	ALU_out_Z <= ALU_out_Y;
-	wd_z <= wd_z;
-	
 	
 	PCout <= PC_X;
 
@@ -145,4 +141,33 @@ dmem_blk_ram dmem_blk_ram(
 	.dina(RT_shifted),
 	.douta(dmem_out)
 );
+
+//stage one
+always@(*) begin
+	case(JBout) begin
+		2'b00: PC_in = PCout4_X;	
+		2'b01: PC_in = PC_shifted_Y;	
+		2'b10: PC_in = {PCout_Y[31:28],inst_Y[25:0] ,2'b00 };	
+		2'b11: PC_in = RS;	
+	endcase
+
+	PC_X = rst ? PC_in:32'd0; 
+	PCout4_X = PCout_X + 4;
+end
+
+//stage two
+always@(*) begin
+	case(ALUSrcB_Y) begin
+		3'b000: B = RT;
+		3'b001: B = RS;
+		3'b010: B = {16{inst_Y[15]}, inst_Y[15:0]};
+		3'b011: B = {16'd0, inst_Y[15:0]};
+		3'b100: B = 32'd0;
+		3'b101: B = {27'd0, inst_Y[10:6]};
+	endcase	
+end
+
+wd = (inst_Y ? PCout4_Y+4:wd_Z);  
+a3_Y = (JALCtrl_Y ? 5'd31: (RegDest_Y ? inst_Y[15:11]:inst_Y[20:16]));
+
 endmodule
