@@ -13,7 +13,8 @@
 
 module UARTdec(
 	input[31:0] WD,
-	input[31:0] A,
+	input[31:0] A_Y,
+	input[31:0] A_Z,
 	input[7:0] Read,
 	input[2:0] LdStCtrl,
 	input DataInReady, DataOutValid,
@@ -22,9 +23,9 @@ module UARTdec(
 	output reg DataInValid,
 	output reg DataOutReady
 );
-
+/**
 	always@(*) begin
-		case(A)
+		case(A_Y)
 			32'h80000000:begin	//read DataInReady 
 				Out= {31'd0, DataInReady};
 				Write = 8'd0;
@@ -60,5 +61,59 @@ module UARTdec(
 				end
 		endcase
 	end
+**/
+	always@(*) begin
+		case(A_Y)
+			32'h80000000:begin	//read DataInReady 
+				Write = 8'd0;
+				DataInValid = 1'b0;
+				end
+			32'h80000004:begin  //read DataOutValid
+				Write = 8'd0;
+				DataInValid = 1'b0;
+				end
+			32'h80000008:begin  //write to DataIn
+				Write = WD[7:0];
+				case(LdStCtrl)
+					3'b101,3'b110,3'b111: DataInValid = 1'b1; //all the stores
+					default: DataInValid = 1'b0;
+				endcase
+				end
+			32'h8000000c:begin  //read DataOut
+				Write = 8'd0;
+				DataInValid = 1'b0;
+				end
+			default:begin
+				Write = 8'd0;
+				DataInValid = 1'b0;
+				end
+		endcase
+	end
+
+	always @(*) begin
+		case(A_Z)
+			32'h80000000:begin	//read DataInReady 
+				Out= {31'd0, DataInReady};
+				DataOutReady = 1'b0;
+				end
+			32'h80000004:begin  //read DataOutValid
+				Out = {31'd0, DataOutValid};
+				DataOutReady = 1'b0;
+				end
+			32'h80000008:begin  //write to DataIn
+				Out = 32'd0;
+				DataOutReady = 1'b0;
+				end
+			32'h8000000c:begin  //read DataOut
+				Out = {24'd0, Read};
+				DataOutReady = 1'b1;
+				end
+			default:begin
+				Out = 32'd0;
+				DataOutReady = 1'b0;
+				end
+			
+		endcase
+	end	
 
 endmodule

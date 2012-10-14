@@ -19,7 +19,6 @@ reg [31:0] PCout_XY, PCoutplus4_XY, PCoutplus4_YZ, ALU_out_YZ;
 reg [4:0] a3_YZ;
 reg [31:0] PCoutreg;
 
-
 wire RegDest_Y, ALURegSel_Y, RegWrite_Y, RegWrite_Z, MemToReg_Y,MemToReg_Z,  DataOutValid, DataInReady, DataInValid, DataOutReady, PCPlus8_X, PCPlus8_Y, PCPlus8_Z, JALCtrl_Y;
 wire [1:0] JBout;                                     
 wire [2:0] ALUSrcB_Y, LdStCtrl_Y,LdStCtrl_Z;
@@ -101,7 +100,8 @@ UART UART(
                
 UARTdec UARTdec(
 	.WD(RT),
-	.A(ALU_out_Y),
+	.A_Y(ALU_out_Y),
+	.A_Z(ALU_out_Z),
 	.Read(UARTread),
 	.LdStCtrl(LdStCtrl_Y),
 	.DataInReady(DataInReady),
