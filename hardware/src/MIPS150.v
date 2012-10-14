@@ -206,7 +206,7 @@ always@(*) begin
 end
 
 assign PC_in = tempPC;
-assign PC_X = rst ? PC_in:32'd0; 
+assign PC_X = rst ? 32'd0:PC_in; 
 assign PCoutplus4_X = PCout_X + 4;
 
 //stage two
