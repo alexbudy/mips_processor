@@ -13,14 +13,32 @@ wire we_reg, AequalsB;
 
 
 //Instantiate all wires first
-reg RegDest_X, RegDest_Y, ALURegSel_X,ALURegSel_Y,RegWrite_X, RegWrite_Y, RegWrite_Z, MemToReg_X,MemToReg_Y,MemToReg_Z, inst_X, inst_Y, DataOutValid, DataInReady, DataInValid, DataOutReady, PCPlus8_X, PCPlus8_Y, dmem_out;
-reg [1:0] JBout, JALCtrl_X, JALCtrl_Y;                                              
-reg [2:0] ALUSrcB_X, ALUSrcB_Y,LdStCtrl_X,LdStCtrl_Y,LdStCtrl_Z;
-reg [3:0] ALUCtrl_X, ALUCtrl_Y, JumpBranch_X, JumpBranch_Y, we_i, we_d;
-reg [31:0] PC_X, PCout_X, PCout_Y, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,RT,ALU_out_Y,ALU_out_Z, wd_y, wd_z, RT_shifted, UARTout, MemUARTout, PC_in;
-reg [7:0] UARTwrite, UARTread;
-reg [11:0] mem_adr;
-reg [4:0] a3_Z, a3_Y;
+//
+
+reg RegDest_XY, ALURegSel_XY, RegWrite_YZ, MemToReg_XY, MemToReg_YZ, inst_XY;
+reg [1:0] JALCtrl_XY;
+reg [2:0] ALUSrcB_XY, LdStCtrl_XY, LdStCtrl_YZ;
+reg [3:0] ALUCtrl_XY, JumpBranch_XY;
+reg [31:0] PCout_XY, PCoutplus4_XY, PCoutplus4_YZ, ALU_out_YZ, wd_YZ;
+reg [4:0] a3_YZ;
+
+
+wire RegDest_X, RegDest_Y, ALURegSel_X,ALURegSel_Y,RegWrite_X, RegWrite_Y, RegWrite_Z, MemToReg_X,MemToReg_Y,MemToReg_Z, inst_X, inst_Y, DataOutValid, DataInReady, DataInValid, DataOutReady, PCPlus8_X, PCPlus8_Y, dmem_out;
+wire [1:0] JBout, JALCtrl_X, JALCtrl_Y;                                              
+wire [2:0] ALUSrcB_X, ALUSrcB_Y,LdStCtrl_X,LdStCtrl_Y,LdStCtrl_Z;
+wire [3:0] ALUCtrl_X, ALUCtrl_Y, JumpBranch_X, JumpBranch_Y, we_i, we_d;
+wire [31:0] PC_X, PCout_X, PCout_Y, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,RT,ALU_out_Y,ALU_out_Z, wd_y, wd_z, RT_shifted, UARTout, MemUARTout, PC_in;
+wire [7:0] UARTwrite, UARTread;
+wire [11:0] mem_adr;
+wire [4:0] a3_Z, a3_Y;
+
+assign JALCtrl_Y = JALCtrl_XY;
+assign ALUSrcB_Y = ALUSrcB_XY;
+assign LdStCtrl_Y = LdStCtrl_XY;
+assign LdStCtrl_Z = LdStCtrl_YZ;
+assign ALU_out_Z = ALU_out_YZ;
+assign wd_Z = wd_YZ;
+assign a3_Z = a3_Y;
 
 RegFile RegFile(                            
             .clk(clk),                       
@@ -94,28 +112,28 @@ ControlUnit ControlUnit(
 );
 
 always @(posedge clk)begin
-	RegDest_Y <= RegDest_X;
-	ALURegSel_Y <= ALURegSel_X;
-	RegWrite_Y <= RegWrite_X;
-	RegWrite_Z <= RegWrite_Y;
-	MemToReg_Y <= MemToReg_X;
-	MemToReg_Z <= MemToReg_Y;
-	inst_Y <= inst_X;
-	JALCtrl_Y <= JALCtrl_X;
-	ALUSrcB_Y <= ALUSrcB_X;
-	ALUCtrl_X <= ALUCtrl_Y;
-	JumpBranch_Y <= JumpBranch_X;
-	ALU_out_Z <= ALU_out_Y;
-	a3_Z <= a3_Y;
+	RegDest_XY <= RegDest_X;
+	ALURegSel_XY <= ALURegSel_X;
+	RegWrite_XY <= RegWrite_X;
+	RegWrite_YZ <= RegWrite_Y;
+	MemToReg_XY <= MemToReg_X;
+	MemToReg_YZ <= MemToReg_Y;
+	inst_XY <= inst_X;
+	JALCtrl_XY <= JALCtrl_X;
+	ALUSrcB_XY <= ALUSrcB_X;
+	LdStCtrl_XY <= LdStCtrl_X;
+	LdStCtrl_YZ <= LdStCtrl_Y;
+	ALUCtrl_XY <= ALUCtrl_X;
+	JumpBranch_XY <= JumpBranch_X;
+	ALU_out_YZ <= ALU_out_Y;
+	a3_YZ <= a3_Y;
 
-	ALU_SrcB_Y <= ALU_SrcB_X;
-	LdStCtrl_Y <= LdStCtrl_X;
-	LdStCtrl_Z <= LdStCtrl_Y;
-	ALUCtrl_Y <= ALUCtrl_X;
-	JumpBranch_Y <= JumpBranch_X;
-	PCout_Y <= PCout_X;
-	PCoutplus4_Y <= PCoutplus4_X;
-	PCoutplus4_Z <= PCoutplus4_Y;
+	ALU_SrcB_XY <= ALU_SrcB_X;
+	ALUCtrl_XY <= ALUCtrl_X;
+	JumpBranch_XY <= JumpBranch_X;
+	PCout_XY <= PCout_X;
+	PCoutplus4_XY <= PCoutplus4_X;
+	PCoutplus4_YZ <= PCoutplus4_Y;
 	
 	PCout <= PC_X;
 
