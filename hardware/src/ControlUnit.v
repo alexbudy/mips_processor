@@ -30,12 +30,16 @@ module ControlUnit(input[4:0] rt,
 	   output reg [3:0] JumpBranch	
 );
 
+wire [3:0] ALUCtrlwire;
+
 ALUdec aludec(.funct(funct),
 		.opcode(opcode),
-		.ALUop(ALUCtrl)
+		.ALUop(ALUCtrlwire)
 		); 
+
 	
 always@(*) begin
+	ALUCtrl = ALUCtrlwire;
 	case(opcode)
 		`RTYPE:
 			case(funct)
