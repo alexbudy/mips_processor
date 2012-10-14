@@ -143,29 +143,35 @@ dmem_blk_ram dmem_blk_ram(
 );
 
 //stage one
+
+reg [31:0] tempPC;
 always@(*) begin
 	case(JBout) begin
-		2'b00: PC_in = PCout4_X;	
-		2'b01: PC_in = PC_shifted_Y;	
-		2'b10: PC_in = {PCout_Y[31:28],inst_Y[25:0] ,2'b00 };	
-		2'b11: PC_in = RS;	
+		2'b00: tempPC = PCout4_X;	
+		2'b01: tempPC = PC_shifted_Y;	
+		2'b10: tempPC = {PCout_Y[31:28],inst_Y[25:0] ,2'b00 };	
+		2'b11: tempPC = RS;	
 	endcase
-
-	PC_X = rst ? PC_in:32'd0; 
-	PCout4_X = PCout_X + 4;
 end
+
+assign PC_in = tempPC
+assign PC_X = rst ? PC_in:32'd0; 
+assign PCout4_X = PCout_X + 4;
 
 //stage two
+
+reg[31:0] tempB;
 always@(*) begin
 	case(ALUSrcB_Y) begin
-		3'b000: B = RT;
-		3'b001: B = RS;
-		3'b010: B = {16{inst_Y[15]}, inst_Y[15:0]};
-		3'b011: B = {16'd0, inst_Y[15:0]};
-		3'b100: B = 32'd0;
-		3'b101: B = {27'd0, inst_Y[10:6]};
+		3'b000: tempB = RT;
+		3'b001: tempB = RS;
+		3'b010: tempB = {16{inst_Y[15]}, inst_Y[15:0]};
+		3'b011: tempB = {16'd0, inst_Y[15:0]};
+		3'b100: tempB = 32'd0;
+		3'b101: tempB = {27'd0, inst_Y[10:6]};
 	endcase	
 end
+assign B = tempB;
 
 wd = (inst_Y ? PCout4_Y+4:wd_Z);  
 a3_Y = (JALCtrl_Y ? 5'd31: (RegDest_Y ? inst_Y[15:11]:inst_Y[20:16]));
