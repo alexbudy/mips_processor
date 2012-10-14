@@ -44,7 +44,7 @@ assign a3_Z = a3_YZ;
 
 RegFile RegFile(                            
             .clk(clk),                       
-            .we(RegWrite_Z),
+            .we(RegWrite_Z & !stall),
             .ra1(inst_Y[25:21]),   
             .ra2(inst_Y[20:16]),  
             .wa(a3_Z),
@@ -106,6 +106,7 @@ UARTdec UARTdec(
 	.LdStCtrl(LdStCtrl_Y),
 	.DataInReady(DataInReady),
 	.DataOutValid(DataOutValid),
+	.stall(stall),
 	.Write(UARTwrite),
 	.Out(UARTout),
 	.DataInValid(DataInValid),
@@ -129,27 +130,47 @@ ControlUnit ControlUnit(
 );
 
 always @(posedge clk)begin
-	RegWrite_YZ <= RegWrite_Y;
-	MemToReg_YZ <= MemToReg_Y;
-	inst_XY <= inst_X;
-	PCPlus8_XY <= PCPlus8_X;
-	PCPlus8_YZ <= PCPlus8_Y;
-	
-	LdStCtrl_YZ <= LdStCtrl_Y;
-	PCout_XY <= PCout_X;
-	PCoutplus4_XY <= PCoutplus4_X;
-	PCoutplus4_YZ <= PCoutplus4_Y;
-	ALU_out_YZ <= ALU_out_Y;
-	a3_YZ <= a3_Y;
+	if (rst) begin
+			RegWrite_YZ <= 1'b0 ;
+			MemToReg_YZ <= 1'b0;
+			inst_XY <= 32'd0;
+			PCPlus8_XY <= 1'b0;
+			PCPlus8_YZ <= 1'b0;
+			
+			LdStCtrl_YZ <= 3'd0;
+			PCout_XY <= 32'd0;
+			PCoutplus4_XY <= 32'd0;
+			PCoutplus4_YZ <= 32'd0;
+			ALU_out_YZ <= 32'd0;
+			a3_YZ <= 5'd0;
 
-	PCoutreg <= PC_X;
+			PCoutreg <= 32'd0;
+	end
+	else begin
+		if (!stall) begin
+			RegWrite_YZ <= RegWrite_Y;
+			MemToReg_YZ <= MemToReg_Y;
+			inst_XY <= inst_X;
+			PCPlus8_XY <= PCPlus8_X;
+			PCPlus8_YZ <= PCPlus8_Y;
+			
+			LdStCtrl_YZ <= LdStCtrl_Y;
+			PCout_XY <= PCout_X;
+			PCoutplus4_XY <= PCoutplus4_X;
+			PCoutplus4_YZ <= PCoutplus4_Y;
+			ALU_out_YZ <= ALU_out_Y;
+			a3_YZ <= a3_Y;
+
+			PCoutreg <= PC_X;
+		end
+	end
 end
   
 //memory instantiations
 imem_blk_ram imem_blk_ram(
 	.clka(clk),	
 	.ena(1'b1),
-	.wea(we_i),
+	.wea(we_i & {4{!stall}}),
 	.addra(mem_adr),
 	.dina(RT_shifted),
 	.clkb(clk),
@@ -159,8 +180,8 @@ imem_blk_ram imem_blk_ram(
 
 dmem_blk_ram dmem_blk_ram(
 	.clka(clk),
-	.ena(1'b1),
-	.wea(we_d),
+	.ena(!stall),
+	.wea(we_d & {4{!stall}}),
 	.addra(mem_adr),
 	.dina(RT_shifted),
 	.douta(dmem_out)
