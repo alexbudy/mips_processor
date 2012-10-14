@@ -25,11 +25,11 @@ reg [4:0] a3_YZ;
 reg PCoutreg;
 
 
-wire RegDest_X, RegDest_Y, ALURegSel_X,ALURegSel_Y,RegWrite_X, RegWrite_Y, RegWrite_Z, MemToReg_X,MemToReg_Y,MemToReg_Z, inst_X, inst_Y, DataOutValid, DataInReady, DataInValid, DataOutReady, PCPlus8_X, PCPlus8_Y, PCPlus8_Z, dmem_out;
+wire RegDest_X, RegDest_Y, ALURegSel_X,ALURegSel_Y,RegWrite_X, RegWrite_Y, RegWrite_Z, MemToReg_X,MemToReg_Y,MemToReg_Z,  DataOutValid, DataInReady, DataInValid, DataOutReady, PCPlus8_X, PCPlus8_Y, PCPlus8_Z, dmem_out;
 wire [1:0] JBout, JALCtrl_X, JALCtrl_Y;                                     
 wire [2:0] ALUSrcB_X, ALUSrcB_Y,LdStCtrl_X,LdStCtrl_Y,LdStCtrl_Z;
 wire [3:0] ALUCtrl_X, ALUCtrl_Y, JumpBranch_X, JumpBranch_Y, we_i, we_d;
-wire [31:0] A, B, PC_X, PCout_X, PCout_Y, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,ALU_out_Y,ALU_out_Z, wd_y, wd_z, RT_shifted, UARTout, MemUARTout, PC_in;
+wire [31:0] A, B, PC_X, PCout_X, PCout_Y, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,ALU_out_Y,ALU_out_Z, wd_y, wd_z, RT_shifted, UARTout, MemUARTout, PC_in, inst_X, inst_Y;
 wire [7:0] UARTwrite, UARTread;
 wire [11:0] mem_adr;
 wire [4:0] a3_Z, a3_Y;
@@ -64,8 +64,8 @@ assign PCout = PCoutreg;
 RegFile RegFile(                            
             .clk(clk),                       
             .we(we_reg),
-            .ra1(inst_2[25:21]),   
-            .ra2(inst_2[20:16]),  
+            .ra1(inst_Y[25:21]),   
+            .ra2(inst_Y[20:16]),  
             .ra3(a3_Z),
             .wd(wd),  
             .rd1(rd1),
@@ -198,26 +198,26 @@ dmem_blk_ram dmem_blk_ram(
 
 reg [31:0] tempPC;
 always@(*) begin
-	case(JBout) begin
-		2'b00: tempPC = PCout4_X;	
+	case(JBout)
+		2'b00: tempPC = PCoutplus4_X;	
 		2'b01: tempPC = PC_shifted_Y;	
 		2'b10: tempPC = {PCout_Y[31:28],inst_Y[25:0] ,2'b00 };	
 		2'b11: tempPC = RS;	
 	endcase
 end
 
-assign PC_in = tempPC
+assign PC_in = tempPC;
 assign PC_X = rst ? PC_in:32'd0; 
-assign PCout4_X = PCout_X + 4;
+assign PCoutplus4_X = PCout_X + 4;
 
 //stage two
 
 reg[31:0] tempB;
 always@(*) begin
-	case(ALUSrcB_Y) begin
+	case(ALUSrcB_Y) 
 		3'b000: tempB = RT;
 		3'b001: tempB = RS;
-		3'b010: tempB = {16{inst_Y[15]}, inst_Y[15:0]};
+		3'b010: tempB = {{16{inst_Y[15]}}, inst_Y[15:0]};
 		3'b011: tempB = {16'd0, inst_Y[15:0]};
 		3'b100: tempB = 32'd0;
 		3'b101: tempB = {27'd0, inst_Y[10:6]};
@@ -227,10 +227,10 @@ assign B = tempB;
 
 assign wd = (PCPlus8_Z ? PCoutplus4_Z+4:wd_Z);  
 assign a3_Y = (JALCtrl_Y ? 5'd31: (RegDest_Y ? inst_Y[15:11]:inst_Y[20:16]));
-assign PC_shifted_Y = PCout4_Y + ({16{inst_Y[15]}, inst_Y[15:0]} << 2); 
-assign RS = ((a3_z == inst_Y[25:21] & RegWriteZ) ? wd : rd1); 
-assign RT = ((a3_z == inst_Y[20:16] & RegWriteZ) ? wd : rd2); 
-assign A = (ALURegSel ? RT : RS);
+assign PC_shifted_Y = PCoutplus4_Y + ({{16{inst_Y[15]}}, inst_Y[15:0]} << 2); 
+assign RS = ((a3_Z == inst_Y[25:21] & RegWrite_Z) ? wd : rd1); 
+assign RT = ((a3_Z == inst_Y[20:16] & RegWrite_Z) ? wd : rd2); 
+assign A = (ALURegSel_Y ? RT : RS);
 
 //stage three
 assign wd_z = (MemToReg_Z ? (ALU_out_Z[31:28] == 4'd0 ? UARTout : LLout) : ALU_out_Z);
