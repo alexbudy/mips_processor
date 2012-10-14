@@ -42,6 +42,8 @@ always@(*)begin
 		4'b1000://BGEZ
 			if(ALU_out != 32'd1) Jump_sel = 2'b01;
 			else Jump_sel = 2'b00;
+		default:
+			Jump_sel = 2'b00;
 	endcase
 end
 

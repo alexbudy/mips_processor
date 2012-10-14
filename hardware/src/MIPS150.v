@@ -12,8 +12,8 @@ wire AequalsB;
                          
 //Instantiate all registers first
 
-reg RegWrite_YZ, MemToReg_YZ;
-reg [31:0] inst_XY, PCPlus8_XY, PCPlus8_YZ;
+reg RegWrite_YZ, MemToReg_YZ, PCPlus8_YZ;
+reg [31:0] inst_XY;
 reg [2:0] LdStCtrl_YZ;
 reg [31:0] PCout_XY, PCoutplus4_XY, PCoutplus4_YZ, ALU_out_YZ;
 reg [4:0] a3_YZ;
@@ -23,7 +23,7 @@ wire RegDest_Y, ALURegSel_Y, RegWrite_Y, RegWrite_Z, MemToReg_Y,MemToReg_Z,  Dat
 wire [1:0] JBout;                                     
 wire [2:0] ALUSrcB_Y, LdStCtrl_Y,LdStCtrl_Z;
 wire [3:0] ALUCtrl_Y, JumpBranch_Y, we_i, we_d;
-wire [31:0] A, B, PC_X, PCout_X, PCout_Y, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,ALU_out_Y,ALU_out_Z, wd_Z, RT_shifted, UARTout, MemUARTout, inst_X, inst_Y, dmem_out;
+wire [31:0] A, B, PC_X, PCout_X, PCout_Y, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,ALU_out_Y,ALU_out_Z, wd_Z, RT_shifted, UARTout, inst_X, inst_Y, dmem_out;
 wire [7:0] UARTwrite, UARTread;
 wire [11:0] mem_adr;
 wire [4:0] a3_Z, a3_Y;
@@ -32,7 +32,6 @@ wire [31:0] LLout; //Load logic out
 assign RegWrite_Z = RegWrite_YZ;
 assign MemToReg_Z = MemToReg_YZ;
 assign inst_Y = inst_XY;
-assign PCPlus8_Y = PCPlus8_XY;
 assign PCPlus8_Z = PCPlus8_YZ;
 
 assign LdStCtrl_Z = LdStCtrl_YZ;
@@ -134,7 +133,6 @@ always @(posedge clk)begin
 			RegWrite_YZ <= 1'b0 ;
 			MemToReg_YZ <= 1'b0;
 			inst_XY <= 32'd0;
-			PCPlus8_XY <= 1'b0;
 			PCPlus8_YZ <= 1'b0;
 			
 			LdStCtrl_YZ <= 3'd0;
@@ -151,7 +149,6 @@ always @(posedge clk)begin
 			RegWrite_YZ <= RegWrite_Y;
 			MemToReg_YZ <= MemToReg_Y;
 			inst_XY <= inst_X;
-			PCPlus8_XY <= PCPlus8_X;
 			PCPlus8_YZ <= PCPlus8_Y;
 			
 			LdStCtrl_YZ <= LdStCtrl_Y;
