@@ -31,6 +31,7 @@ wire [31:0] PC_X, PCout_X, PCout_Y, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC
 wire [7:0] UARTwrite, UARTread;
 wire [11:0] mem_adr;
 wire [4:0] a3_Z, a3_Y;
+wire [31:0] LLout; //Load logic out
 
 assign JALCtrl_Y = JALCtrl_XY;
 assign ALUSrcB_Y = ALUSrcB_XY;
@@ -59,6 +60,13 @@ ALU ALU(
             .AequalsB(AequalsB)
 );                            
 
+JBLogic JBLogic(
+			.JumpBranch(JumpBranch_Y),
+			.ALU_out(ALU_out_Y),
+			.ALU_zero(AequalsB),
+			.Jump_sel(JBout)
+);
+
 AddressForMem AddressForMem(
             .RTin(RT)      
             .alu_out(ALU_out),
@@ -68,6 +76,13 @@ AddressForMem AddressForMem(
             .we_d(we_d),        
             .RTout(RT_shifted),
 );                            
+
+LoadLogic LoadLogic(
+			.word(dmem_out),
+			.LdStCtrl(LdStCtrl_Z),
+			.byte_sel(ALU_out_Z[1:0]),
+			.word_out(LLout)
+);
                   
 UART UART(        
         .Clock(clk),
@@ -191,7 +206,14 @@ always@(*) begin
 end
 assign B = tempB;
 
-wd = (inst_Y ? PCout4_Y+4:wd_Z);  
-a3_Y = (JALCtrl_Y ? 5'd31: (RegDest_Y ? inst_Y[15:11]:inst_Y[20:16]));
+assign wd = (PCPlus8_Z ? PCoutplus4_Z+4:wd_Z);  
+assign a3_Y = (JALCtrl_Y ? 5'd31: (RegDest_Y ? inst_Y[15:11]:inst_Y[20:16]));
+assign PC_shifted_Y = PCout4_Y + ({16{inst_Y[15]}, inst_Y[15:0]} << 2); 
+assign RS = ((a3_z == inst_Y[25:21] & RegWriteZ) ? wd : rd1); 
+assign RT = ((a3_z == inst_Y[20:16] & RegWriteZ) ? wd : rd2); 
+assign A = (ALURegSel ? RT : RS);
+
+//stage three
+assign wd_z = (MemToReg_Z ? (ALU_out_Z[31:28] == 4'd0 ? UARTout : LLout) : ALU_out_Z);
 
 endmodule
