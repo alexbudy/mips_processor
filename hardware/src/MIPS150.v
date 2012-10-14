@@ -13,13 +13,14 @@ wire we_reg, AequalsB;
 
 
 //Instantiate all wires first
-wire RegDest_X, RegDest_Y, ALURegSel_X,ALURegSel_Y,RegWrite_X, RegWrite_Y, RegWrite_Z, we_reg, MemToReg_X,MemToReg_Y,MemToReg_Z, inst_X, inst_Y, DataOutValid, DataInReady, DataInValid, DataOutReady, PCPlus8_X, PCPlus8_Y,
-wire [1:0] JBout, JALCtrl_X, JALCtrl_Y                                              
-wire [2:0] ALUSrcB_X, ALUSrcB_Y,LdStCtrl_X,LdStCtrl_Y,LdStCtrl_Z,
-wire [3:0] ALUCtrl_X, ALUCtrl_Y, JumpBranch_X, JumpBranch_Y, we_e, we_d,
-wire [31:0] PC_X, PCout_X, PCout_Y, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,RT,ALU_out_Y,ALU_out_Z, wd_y, wd_z, RT_shifted, UARTout, MemUARTout
-wire [7:0] UARTwrite, UARTread
-wire [11:0] mem_adr
+wire RegDest_X, RegDest_Y, ALURegSel_X,ALURegSel_Y,RegWrite_X, RegWrite_Y, RegWrite_Z, we_reg, MemToReg_X,MemToReg_Y,MemToReg_Z, inst_X, inst_Y, DataOutValid, DataInReady, DataInValid, DataOutReady, PCPlus8_X, PCPlus8_Y;
+wire [1:0] JBout, JALCtrl_X, JALCtrl_Y;
+wire [2:0] ALUSrcB_X, ALUSrcB_Y,LdStCtrl_X,LdStCtrl_Y,LdStCtrl_Z;
+wire [3:0] ALUCtrl_X, ALUCtrl_Y, JumpBranch_X, JumpBranch_Y, we_i, we_d;
+wire [31:0] PC_X, PCout_X, PCout_Y, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,RT,ALU_out_Y,ALU_out_Z, wd_y, wd_z, RT_shifted, UARTout, MemUARTout;
+wire [7:0] UARTwrite, UARTread;
+wire [11:0] mem_adr;
+
 RegFile RegFile(                            
             .clk(clk),                       
             .we(we_reg),
@@ -76,7 +77,7 @@ UARTdec UARTdec(
 );
 
 ControlUnit ControlUnit(
-	.rt(inst_X[20:16])
+	.rt(inst_X[20:16]),
 	.opcode(inst_X[31:26]),
 	.funct(inst_X[5:0]),
 	.PCPlus8(PCPlus8_X),
@@ -90,5 +91,25 @@ ControlUnit ControlUnit(
 	.LdStCtrl(LdStCtrl_X),
 	.JumpBranch(JumpBranch_X)
 );
-  
+
+//memory instantiations
+imem_blk_ram imem_blk_ram(
+	.clka(clk),	
+	.ena(1'b1),
+	.wea(we_i),
+	.addra(mem_adr),
+	.dina(RT_shifted),
+	.clkb(clk),
+	.addrb(PC_X[13:2]),
+	.doutb(inst_x)
+);
+
+dmem_blk_ram dmem_blk_ram(
+	.clka(clk),
+	.ena(1'b1),
+	.wea(we_d),
+	.addra(mem_adr),
+	.dina(RT_shifted),
+	.douta(dmem_out)
+);
 endmodule
