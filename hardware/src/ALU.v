@@ -33,6 +33,7 @@ always@(*)
 		`ALU_SRL:  Out = B >> A[4:0];
 		`ALU_SRA:  Out = $signed(B) >>> A[4:0];
 		`ALU_NOR:  Out = ~(A | B);
+		default:   Out = A + B;
 	endcase	
 
 assign AequalsB = (A == B);
