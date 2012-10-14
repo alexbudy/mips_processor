@@ -8,61 +8,44 @@ module MIPS150(
 // Use this as the top-level module for your CPU. You
 // will likely want to break control and datapath out
 // into separate modules that you instantiate here. 
-wire we_reg, AequalsB;    
+wire AequalsB;    
                          
+//Instantiate all registers first
 
-
-//Instantiate all wires first
-//
-
-reg RegDest_XY, ALURegSel_XY, RegWrite_XY, RegWrite_YZ, MemToReg_XY, MemToReg_YZ, inst_XY, PCPlus8_XY, PCPlus8_YZ, JALCtrl_XY;
-reg [2:0] ALUSrcB_XY, LdStCtrl_XY, LdStCtrl_YZ;
-reg [3:0] ALUCtrl_XY, JumpBranch_XY;
-reg [31:0] PCout_XY, PCoutplus4_XY, PCoutplus4_YZ, ALU_out_YZ, wd_YZ;
+reg RegWrite_YZ, MemToReg_YZ;
+reg [31:0] inst_XY, PCPlus8_XY, PCPlus8_YZ;
+reg [2:0] LdStCtrl_YZ;
+reg [31:0] PCout_XY, PCoutplus4_XY, PCoutplus4_YZ, ALU_out_YZ;
 reg [4:0] a3_YZ;
+reg [31:0] PCoutreg;
 
-reg PCoutreg;
 
-
-wire RegDest_X, RegDest_Y, ALURegSel_X,ALURegSel_Y,RegWrite_X, RegWrite_Y, RegWrite_Z, MemToReg_X,MemToReg_Y,MemToReg_Z,  DataOutValid, DataInReady, DataInValid, DataOutReady, PCPlus8_X, PCPlus8_Y, PCPlus8_Z, JALCtrl_X, JALCtrl_Y;
+wire RegDest_Y, ALURegSel_Y, RegWrite_Y, RegWrite_Z, MemToReg_Y,MemToReg_Z,  DataOutValid, DataInReady, DataInValid, DataOutReady, PCPlus8_X, PCPlus8_Y, PCPlus8_Z, JALCtrl_Y;
 wire [1:0] JBout;                                     
-wire [2:0] ALUSrcB_X, ALUSrcB_Y,LdStCtrl_X,LdStCtrl_Y,LdStCtrl_Z;
-wire [3:0] ALUCtrl_X, ALUCtrl_Y, JumpBranch_X, JumpBranch_Y, we_i, we_d;
-wire [31:0] A, B, PC_X, PCout_X, PCout_Y, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,ALU_out_Y,ALU_out_Z, wd_y, wd_z, RT_shifted, UARTout, MemUARTout, PC_in, inst_X, inst_Y, dmem_out;
+wire [2:0] ALUSrcB_Y, LdStCtrl_Y,LdStCtrl_Z;
+wire [3:0] ALUCtrl_Y, JumpBranch_Y, we_i, we_d;
+wire [31:0] A, B, PC_X, PCout_X, PCout_Y, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,ALU_out_Y,ALU_out_Z, wd_Z, RT_shifted, UARTout, MemUARTout, inst_X, inst_Y, dmem_out;
 wire [7:0] UARTwrite, UARTread;
 wire [11:0] mem_adr;
 wire [4:0] a3_Z, a3_Y;
 wire [31:0] LLout; //Load logic out
 
-wire PCout;
-
-assign RegDest_Y = RegDest_XY;
-assign ALURegSel_Y = ALURegSel_XY;
-assign RegWrite_Y = RegWrite_XY;
 assign RegWrite_Z = RegWrite_YZ;
-assign MemToReg_Y = MemToReg_XY;
+assign MemToReg_Z = MemToReg_YZ;
 assign inst_Y = inst_XY;
 assign PCPlus8_Y = PCPlus8_XY;
 assign PCPlus8_Z = PCPlus8_YZ;
 
-assign JALCtrl_Y = JALCtrl_XY;
-assign ALUSrcB_Y = ALUSrcB_XY;
-assign LdStCtrl_Y = LdStCtrl_XY;
 assign LdStCtrl_Z = LdStCtrl_YZ;
-assign ALUCtrl_Y = ALUCtrl_XY;
-assign JumpBranch_Y = JumpBranch_XY;
 assign PCout_Y = PCout_XY;
 assign PCoutplus4_Y = PCoutplus4_XY;
 assign PCoutplus4_Z = PCoutplus4_YZ;
 assign ALU_out_Z = ALU_out_YZ;
-assign wd_Z = wd_YZ;
-assign a3_Z = a3_Y;
-
-assign PCout = PCoutreg;
+assign a3_Z = a3_YZ;
 
 RegFile RegFile(                            
             .clk(clk),                       
-            .we(we_reg),
+            .we(RegWrite_Z),
             .ra1(inst_Y[25:21]),   
             .ra2(inst_Y[20:16]),  
             .wa(a3_Z),
@@ -130,38 +113,29 @@ UARTdec UARTdec(
 );
 
 ControlUnit ControlUnit(
-	.rt(inst_X[20:16]),
-	.opcode(inst_X[31:26]),
-	.funct(inst_X[5:0]),
-	.PCPlus8(PCPlus8_X),
-	.RegDest(RegDest_X),
-	.ALURegSel(ALURegSel_X),
-	.JALCtrl(JALCtrl_X),
-	.RegWrite(RegWrite_X),
-	.MemToReg(MemToReg_X),
-	.ALUCtrl(ALUCtrl_X),
-	.ALUSrcB(ALUSrcB_X),
-	.LdStCtrl(LdStCtrl_X),
-	.JumpBranch(JumpBranch_X)
+	.rt(inst_Y[20:16]),
+	.opcode(inst_Y[31:26]),
+	.funct(inst_Y[5:0]),
+	.PCPlus8(PCPlus8_Y),
+	.RegDest(RegDest_Y),
+	.ALURegSel(ALURegSel_Y),
+	.JALCtrl(JALCtrl_Y),
+	.RegWrite(RegWrite_Y),
+	.MemToReg(MemToReg_Y),
+	.ALUCtrl(ALUCtrl_Y),
+	.ALUSrcB(ALUSrcB_Y),
+	.LdStCtrl(LdStCtrl_Y),
+	.JumpBranch(JumpBranch_Y)
 );
 
 always @(posedge clk)begin
-	RegDest_XY <= RegDest_X;
-	ALURegSel_XY <= ALURegSel_X;
-	RegWrite_XY <= RegWrite_X;
 	RegWrite_YZ <= RegWrite_Y;
-	MemToReg_XY <= MemToReg_X;
 	MemToReg_YZ <= MemToReg_Y;
 	inst_XY <= inst_X;
 	PCPlus8_XY <= PCPlus8_X;
 	PCPlus8_YZ <= PCPlus8_Y;
 	
-	JALCtrl_XY <= JALCtrl_X;
-	ALUSrcB_XY <= ALUSrcB_X;
-	LdStCtrl_XY <= LdStCtrl_X;
 	LdStCtrl_YZ <= LdStCtrl_Y;
-	ALUCtrl_XY <= ALUCtrl_X;
-	JumpBranch_XY <= JumpBranch_X;
 	PCout_XY <= PCout_X;
 	PCoutplus4_XY <= PCoutplus4_X;
 	PCoutplus4_YZ <= PCoutplus4_Y;
@@ -169,7 +143,6 @@ always @(posedge clk)begin
 	a3_YZ <= a3_Y;
 
 	PCoutreg <= PC_X;
-
 end
   
 //memory instantiations
@@ -205,8 +178,8 @@ always@(*) begin
 	endcase
 end
 
-assign PC_in = tempPC;
-assign PC_X = rst ? 32'd0:PC_in; 
+assign PC_X = rst ? 32'd0: tempPC; 
+assign PCout_X = PCoutreg; 
 assign PCoutplus4_X = PCout_X + 4;
 
 //stage two
@@ -232,6 +205,6 @@ assign RT = ((a3_Z == inst_Y[20:16] & RegWrite_Z) ? wd : rd2);
 assign A = (ALURegSel_Y ? RT : RS);
 
 //stage three
-assign wd_z = (MemToReg_Z ? (ALU_out_Z[31:28] == 4'd0 ? UARTout : LLout) : ALU_out_Z);
+assign wd_Z = (MemToReg_Z ? (ALU_out_Z[31:28] == 4'b1000 ? UARTout : LLout) : ALU_out_Z);
 
 endmodule

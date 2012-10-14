@@ -18,28 +18,28 @@ module JBLogic(
 
 always@(*)begin
 	case(JumpBranch)
-		0000://no jump
+		4'b0000://no jump
 			Jump_sel = 2'b00;
-		0001://J,JAL
+		4'b0001://J,JAL
 			Jump_sel = 2'b10;
-		0010://JR,JALR
+		4'b0010://JR,JALR
 			Jump_sel = 2'b11;
-		0011://BEQ
+		4'b0011://BEQ
 			if(ALU_zero) Jump_sel = 2'b01;
 			else Jump_sel = 2'b00;
-		0100://BNE
+		4'b0100://BNE
 			if(!ALU_zero) Jump_sel = 2'b01;
 			else Jump_sel = 2'b00;
-		0101://BLEZ
+		4'b0101://BLEZ
 			if(ALU_out == 32'd1 | ALU_zero) Jump_sel = 2'b01;
 			else Jump_sel = 2'b00;
-		0110://BGTZ
+		4'b0110://BGTZ
 			if(ALU_out != 32'd1 & !ALU_zero) Jump_sel = 2'b01;
 			else Jump_sel = 2'b00;
-		0111://BLTZ
+		4'b0111://BLTZ
 			if(ALU_out == 32'd1) Jump_sel = 2'b01;
 			else Jump_sel = 2'b00;
-		1000://BGEZ
+		4'b1000://BGEZ
 			if(ALU_out != 32'd1) Jump_sel = 2'b01;
 			else Jump_sel = 2'b00;
 	endcase

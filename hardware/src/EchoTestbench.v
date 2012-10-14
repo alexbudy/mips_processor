@@ -52,7 +52,7 @@ MIPS150 CPU(
       #(100*Cycle)
 
       Reset = 1;
-      #(30*Cycle)
+      #(5*Cycle)
       Reset = 0;
 
       // Wait until transmit is ready

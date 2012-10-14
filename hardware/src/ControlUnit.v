@@ -345,6 +345,18 @@ always@(*) begin
 			if (rt==5'b00000) JumpBranch = 4'b0111;
 			else JumpBranch = 4'b1000;
 			end	
+		default:
+			begin
+			PCPlus8 = 1'b0;
+			RegDest = 1'b0;
+			ALURegSel = 1'b0;
+			JALCtrl = 1'b0;
+			ALUSrcB = 3'b100;
+			RegWrite = 1'b0;
+			MemToReg = 1'b0;
+			LdStCtrl = 3'b000;
+			JumpBranch = 4'b1000;
+			end	
 	endcase	
 end
 endmodule
