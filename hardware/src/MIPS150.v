@@ -15,7 +15,7 @@ wire AequalsB;
 reg RegWrite_YZ, MemToReg_YZ, PCPlus8_YZ;
 reg [31:0] inst_XY;
 reg [2:0] LdStCtrl_YZ;
-reg [31:0] PCoutplus4_XY, PCoutplus4_YZ, ALU_out_YZ;
+reg [31:0] PCoutplus4_XY, PCoutplus4_YZ, ALU_out_YZ, UARTout_YZ;
 reg [4:0] a3_YZ;
 reg [31:0] PCoutreg;
 reg [3:0] PCout_XY;
@@ -24,7 +24,7 @@ wire RegDest_Y, ALURegSel_Y, RegWrite_Y, RegWrite_Z, MemToReg_Y,MemToReg_Z,  Dat
 wire [1:0] JBout;                                     
 wire [2:0] ALUSrcB_Y, LdStCtrl_Y,LdStCtrl_Z;
 wire [3:0] ALUCtrl_Y, JumpBranch_Y, we_i, we_d, PCout_Y;
-wire [31:0] A, B, PC_X, PCout_X, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,ALU_out_Y,ALU_out_Z, wd_Z, RT_shifted, UARTout, inst_X, inst_Y, dmem_out;
+wire [31:0] A, B, PC_X, PCout_X, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,ALU_out_Y,ALU_out_Z, wd_Z, RT_shifted, UARTout_Y, UARTout_Z, inst_X, inst_Y, dmem_out;
 wire [7:0] UARTwrite, UARTread;
 wire [11:0] mem_adr;
 wire [4:0] a3_Z, a3_Y;
@@ -41,6 +41,7 @@ assign PCoutplus4_Y = PCoutplus4_XY;
 assign PCoutplus4_Z = PCoutplus4_YZ;
 assign ALU_out_Z = ALU_out_YZ;
 assign a3_Z = a3_YZ;
+assign UARTout_Z = UARTout_YZ;
 
 RegFile RegFile(                            
             .clk(clk),                       
@@ -101,7 +102,7 @@ UART UART(
 UARTdec UARTdec(
 	.WD(RT[7:0]),
 	.A_Y(ALU_out_Y),
-	.A_Z(ALU_out_Z),
+//	.A_Z(ALU_out_Z),
 	.Read(UARTread),
 	.LdStCtrl(LdStCtrl_Y),
 	.DataInReady(DataInReady),
@@ -109,7 +110,7 @@ UARTdec UARTdec(
 	.stall(stall),
 	.MemToReg(MemToReg_Z),
 	.Write(UARTwrite),
-	.Out(UARTout),
+	.Out(UARTout_Y),
 	.DataInValid(DataInValid),
 	.DataOutReady(DataOutReady)
 );
@@ -143,7 +144,8 @@ always @(posedge clk)begin
 			PCoutplus4_YZ <= 32'd0;
 			ALU_out_YZ <= 32'd0;
 			a3_YZ <= 5'd0;
-
+			UARTout_YZ <= 32'd0;
+			
 			PCoutreg <= 32'd0;
 	end
 	else begin
@@ -159,6 +161,7 @@ always @(posedge clk)begin
 			PCoutplus4_YZ <= PCoutplus4_Y;
 			ALU_out_YZ <= ALU_out_Y;
 			a3_YZ <= a3_Y;
+			UARTout_YZ <= UARTout_Y;
 
 			PCoutreg <= PC_X;
 		end
@@ -226,6 +229,6 @@ assign RT = ((a3_Z == inst_Y[20:16] & RegWrite_Z) ? wd : rd2);
 assign A = (ALURegSel_Y ? RT : RS);
 
 //stage three
-assign wd_Z = (MemToReg_Z ? (ALU_out_Z[31:28] == 4'b1000 ? UARTout : LLout) : ALU_out_Z);
+assign wd_Z = (MemToReg_Z ? (ALU_out_Z[31:28] == 4'b1000 ? UARTout_Z : LLout) : ALU_out_Z);
 
 endmodule

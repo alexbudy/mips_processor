@@ -22,7 +22,7 @@ module RegFile(input clk,
 
 // Implement your register file here, then delete this comment.
 	parameter ENTRIES = 32;
-	reg [31:0] registers [ENTRIES-1:0];	
+	(* ram_style = "distributed" *) reg [31:0] registers [ENTRIES-1:0];	
 	
 	integer i;
 	
