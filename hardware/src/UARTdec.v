@@ -19,6 +19,7 @@ module UARTdec(
 	input[2:0] LdStCtrl,
 	input DataInReady, DataOutValid,
 	input stall,
+	input MemToReg,
 	output reg [7:0] Write,
 	output reg [31:0] Out,
 	output reg DataInValid,
@@ -106,8 +107,13 @@ module UARTdec(
 				DataOutReady = 1'b0;
 				end
 			32'h8000000c:begin  //read DataOut
-				Out = {24'd0, Read};
-				DataOutReady = 1'b1 & !stall;
+				if(MemToReg) begin	
+					Out = {24'd0, Read};
+					DataOutReady = 1'b1 & !stall;
+				end else begin
+					Out = 32'd0;
+					DataOutReady = 1'b0;
+				end
 				end
 			default:begin
 				Out = 32'd0;

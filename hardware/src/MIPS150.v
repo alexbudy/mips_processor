@@ -107,6 +107,7 @@ UARTdec UARTdec(
 	.DataInReady(DataInReady),
 	.DataOutValid(DataOutValid),
 	.stall(stall),
+	.MemToReg(MemToReg_Z),
 	.Write(UARTwrite),
 	.Out(UARTout),
 	.DataInValid(DataInValid),
@@ -212,6 +213,7 @@ always@(*) begin
 		3'b011: tempB = {16'd0, inst_Y[15:0]};
 		3'b100: tempB = 32'd0;
 		3'b101: tempB = {27'd0, inst_Y[10:6]};
+		default: tempB = RT;
 	endcase	
 end
 assign B = tempB;

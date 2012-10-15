@@ -116,6 +116,231 @@ MIPS150 CPU(
 	  #(Cycle);
 	  DataOutReady = 0;
 
+      //send l
+      DataIn = 8'd108;
+      while (!DataInReady) #(Cycle);
+      DataInValid = 1'b1;
+      #(Cycle)
+      DataInValid = 1'b0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      //send w
+      DataIn = 8'd119;
+      while (!DataInReady) #(Cycle);
+      DataInValid = 1'b1;
+      #(Cycle)
+      DataInValid = 1'b0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      //send space
+      DataIn = 8'd32;
+      while (!DataInReady) #(Cycle);
+      DataInValid = 1'b1;
+      #(Cycle)
+      DataInValid = 1'b0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      //send 1
+      DataIn = 8'd49;
+      while (!DataInReady) #(Cycle);
+      DataInValid = 1'b1;
+      #(Cycle)
+      DataInValid = 1'b0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      //send 0
+      DataIn = 8'd48;
+      while (!DataInReady) #(Cycle);
+      DataInValid = 1'b1;
+      #(Cycle)
+      DataInValid = 1'b0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      //send 0
+      DataIn = 8'd48;
+      while (!DataInReady) #(Cycle);
+      DataInValid = 1'b1;
+      #(Cycle)
+      DataInValid = 1'b0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      //send 0
+      DataIn = 8'd48;
+      while (!DataInReady) #(Cycle);
+      DataInValid = 1'b1;
+      #(Cycle)
+      DataInValid = 1'b0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      //send 0
+      DataIn = 8'd48;
+      while (!DataInReady) #(Cycle);
+      DataInValid = 1'b1;
+      #(Cycle)
+      DataInValid = 1'b0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      //send 3
+      DataIn = 8'd51;
+      while (!DataInReady) #(Cycle);
+      DataInValid = 1'b1;
+      #(Cycle)
+      DataInValid = 1'b0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      //send 0
+      DataIn = 8'd48;
+      while (!DataInReady) #(Cycle);
+      DataInValid = 1'b1;
+      #(Cycle)
+      DataInValid = 1'b0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      //send 0
+      DataIn = 8'd48;
+      while (!DataInReady) #(Cycle);
+      DataInValid = 1'b1;
+      #(Cycle)
+      DataInValid = 1'b0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      //send 0
+      DataIn = 8'd48;
+      while (!DataInReady) #(Cycle);
+      DataInValid = 1'b1;
+      #(Cycle)
+      DataInValid = 1'b0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      //send return
+      DataIn = 8'd13;
+      while (!DataInReady) #(Cycle);
+      DataInValid = 1'b1;
+      #(Cycle)
+      DataInValid = 1'b0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+	
+	$display("READING RESULT");
+	
+		//read result
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
       $finish();
   end
 
