@@ -108,7 +108,7 @@ UARTdec UARTdec(
 	.DataInReady(DataInReady),
 	.DataOutValid(DataOutValid),
 	.stall(stall),
-	.MemToReg(MemToReg_Z),
+	.MemToReg(MemToReg_Y),
 	.Write(UARTwrite),
 	.Out(UARTout_Y),
 	.DataInValid(DataInValid),
