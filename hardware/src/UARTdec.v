@@ -12,7 +12,7 @@
 //	Out[31:0]: Output for read
 
 module UARTdec(
-	input[31:0] WD,
+	input[7:0] WD,
 	input[31:0] A_Y,
 	input[31:0] A_Z,
 	input[7:0] Read,

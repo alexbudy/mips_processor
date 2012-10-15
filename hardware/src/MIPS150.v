@@ -15,15 +15,16 @@ wire AequalsB;
 reg RegWrite_YZ, MemToReg_YZ, PCPlus8_YZ;
 reg [31:0] inst_XY;
 reg [2:0] LdStCtrl_YZ;
-reg [31:0] PCout_XY, PCoutplus4_XY, PCoutplus4_YZ, ALU_out_YZ;
+reg [31:0] PCoutplus4_XY, PCoutplus4_YZ, ALU_out_YZ;
 reg [4:0] a3_YZ;
 reg [31:0] PCoutreg;
+reg [3:0] PCout_XY;
 
-wire RegDest_Y, ALURegSel_Y, RegWrite_Y, RegWrite_Z, MemToReg_Y,MemToReg_Z,  DataOutValid, DataInReady, DataInValid, DataOutReady, PCPlus8_X, PCPlus8_Y, PCPlus8_Z, JALCtrl_Y;
+wire RegDest_Y, ALURegSel_Y, RegWrite_Y, RegWrite_Z, MemToReg_Y,MemToReg_Z,  DataOutValid, DataInReady, DataInValid, DataOutReady, PCPlus8_Y, PCPlus8_Z, JALCtrl_Y;
 wire [1:0] JBout;                                     
 wire [2:0] ALUSrcB_Y, LdStCtrl_Y,LdStCtrl_Z;
-wire [3:0] ALUCtrl_Y, JumpBranch_Y, we_i, we_d;
-wire [31:0] A, B, PC_X, PCout_X, PCout_Y, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,ALU_out_Y,ALU_out_Z, wd_Z, RT_shifted, UARTout, inst_X, inst_Y, dmem_out;
+wire [3:0] ALUCtrl_Y, JumpBranch_Y, we_i, we_d, PCout_Y;
+wire [31:0] A, B, PC_X, PCout_X, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,ALU_out_Y,ALU_out_Z, wd_Z, RT_shifted, UARTout, inst_X, inst_Y, dmem_out;
 wire [7:0] UARTwrite, UARTread;
 wire [11:0] mem_adr;
 wire [4:0] a3_Z, a3_Y;
@@ -98,7 +99,7 @@ UART UART(
 );              
                
 UARTdec UARTdec(
-	.WD(RT),
+	.WD(RT[7:0]),
 	.A_Y(ALU_out_Y),
 	.A_Z(ALU_out_Z),
 	.Read(UARTread),
@@ -116,7 +117,7 @@ ControlUnit ControlUnit(
 	.rt(inst_Y[20:16]),
 	.opcode(inst_Y[31:26]),
 	.funct(inst_Y[5:0]),
-	.PCPlus8(PCPlus8_Y),
+.PCPlus8(PCPlus8_Y),
 	.RegDest(RegDest_Y),
 	.ALURegSel(ALURegSel_Y),
 	.JALCtrl(JALCtrl_Y),
@@ -136,7 +137,7 @@ always @(posedge clk)begin
 			PCPlus8_YZ <= 1'b0;
 			
 			LdStCtrl_YZ <= 3'd0;
-			PCout_XY <= 32'd0;
+			PCout_XY <= 4'd0;
 			PCoutplus4_XY <= 32'd0;
 			PCoutplus4_YZ <= 32'd0;
 			ALU_out_YZ <= 32'd0;
@@ -152,7 +153,7 @@ always @(posedge clk)begin
 			PCPlus8_YZ <= PCPlus8_Y;
 			
 			LdStCtrl_YZ <= LdStCtrl_Y;
-			PCout_XY <= PCout_X;
+			PCout_XY <= PCout_X[31:28];
 			PCoutplus4_XY <= PCoutplus4_X;
 			PCoutplus4_YZ <= PCoutplus4_Y;
 			ALU_out_YZ <= ALU_out_Y;
@@ -191,7 +192,7 @@ always@(*) begin
 	case(JBout)
 		2'b00: tempPC = PCoutplus4_X;	
 		2'b01: tempPC = PC_shifted_Y;	
-		2'b10: tempPC = {PCout_Y[31:28],inst_Y[25:0] ,2'b00 };	
+		2'b10: tempPC = {PCout_Y,inst_Y[25:0] ,2'b00 };	
 		2'b11: tempPC = RS;	
 	endcase
 end
