@@ -52,22 +52,69 @@ MIPS150 CPU(
       #(100*Cycle)
 
       Reset = 1;
-      #(5*Cycle)
+      #(50*Cycle)
       Reset = 0;
-
-      // Wait until transmit is ready
-      while (!DataInReady) #(Cycle);
-      DataInValid = 1'b1;
-      #(Cycle)
-      DataInValid = 1'b0;
 
       // Wait for something to come back
       while (!DataOutValid) #(Cycle);
       $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
 
-      // Add more test cases!
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
 
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
 
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
 
       $finish();
   end
