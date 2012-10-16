@@ -29,8 +29,8 @@ always@(*)
 		`ALU_OR:   Out = A | B;
 		`ALU_XOR:  Out = A ^ B;
 		`ALU_LUI:  Out = B << 16;			
-		`ALU_SLL:  Out = B << A[4:0];
-		`ALU_SRL:  Out = B >> A[4:0];
+		`ALU_SLL:  Out = A << B;
+		`ALU_SRL:  Out = A >> B;
 		`ALU_SRA:  Out = $signed(B) >>> A[4:0];
 		`ALU_NOR:  Out = ~(A | B);
 		default:   Out = A + B;

@@ -29,32 +29,32 @@ module UARTdec(
 	always@(*) begin
 		case(A_Y)
 			32'h80000000:begin	//read DataInReady 
-				Out= {31'd0, DataInReady};
+				Out= {31'd0, DataInReady&(!stall)};
 				Write = 8'd0;
 				DataInValid = 1'b0;
 				DataOutReady = 1'b0;
 				end
 			32'h80000004:begin  //read DataOutValid
-				Out = {31'd0, DataOutValid};
+				Out = {31'd0, DataOutValid&(!stall)};
 				Write = 8'd0;
 				DataInValid = 1'b0;
 				DataOutReady = 1'b0;
 				end
 			32'h80000008:begin  //write to DataIn
-				Write = WD[7:0];
+				Write = {8{!stall}}&WD[7:0];
 				Out = 32'd0;
 				case(LdStCtrl)
-					3'b101,3'b110,3'b111: DataInValid = 1'b1; //all the stores
+					3'b101,3'b110,3'b111: DataInValid = !stall; //all the stores
 					default: DataInValid = 1'b0;
 				endcase
 				DataOutReady = 1'b0;
 				end
 			32'h8000000c:begin  //read DataOut
-				Out = {24'd0, Read};
+				Out = {24'd0, {8{!stall}} & Read};
 				Write = 8'd0;
 				DataInValid = 1'b0;
 				if (MemToReg)
-				DataOutReady = 1'b1;
+				DataOutReady = !stall;
 				else
 				DataOutReady = 1'b0;
 				end

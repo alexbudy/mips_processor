@@ -224,8 +224,8 @@ assign B = tempB;
 assign wd = (PCPlus8_Z ? PCoutplus4_Z+4:wd_Z);  
 assign a3_Y = (JALCtrl_Y ? 5'd31: (RegDest_Y ? inst_Y[15:11]:inst_Y[20:16]));
 assign PC_shifted_Y = PCoutplus4_Y + ({{16{inst_Y[15]}}, inst_Y[15:0]} << 2); 
-assign RS = ((a3_Z == inst_Y[25:21] & RegWrite_Z) ? wd : rd1); 
-assign RT = ((a3_Z == inst_Y[20:16] & RegWrite_Z) ? wd : rd2); 
+assign RS = (PCPlus8_Z? rd1:((a3_Z == inst_Y[25:21] & RegWrite_Z) ? wd : rd1)); 
+assign RT = (PCPlus8_Z? rd2:((a3_Z == inst_Y[20:16] & RegWrite_Z) ? wd : rd2)); 
 assign A = (ALURegSel_Y ? RT : RS);
 
 //stage three

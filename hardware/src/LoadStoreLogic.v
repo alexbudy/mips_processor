@@ -39,12 +39,14 @@ module AddressForMem (
 			3'b110://SH
 				begin
 					we = 4'b1100 >> 2*alu_out[1];
-					RTout = RTin << 16 - 16*alu_out[1];
+					RTout = {2{RTin[15:0]}};
+					//RTout = RTin << 16 - 16*alu_out[1];
 				end
 			3'b101://SB
 				begin
 					we = 4'b1000 >> alu_out[1:0];
-					RTout = RTin << 24 - 8*alu_out[1:0];
+					RTout = {4{RTin[7:0]}}; 
+					//RTout = RTin << 24 - 8*alu_out[1:0];
 				end
 		endcase	
 	end
