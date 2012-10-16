@@ -164,6 +164,21 @@ always @(posedge clk)begin
 			UARTout_YZ <= UARTout_Y;
 
 			PCoutreg <= PC_X;
+		end else begin
+			RegWrite_YZ <= RegWrite_YZ;
+			MemToReg_YZ <= MemToReg_YZ;
+			inst_XY <= inst_XY;
+			PCPlus8_YZ <= PCPlus8_YZ;
+			
+			LdStCtrl_YZ <= LdStCtrl_YZ;
+			PCout_XY <= PCout_XY;
+			PCoutplus4_XY <= PCoutplus4_XY;
+			PCoutplus4_YZ <= PCoutplus4_YZ;
+			ALU_out_YZ <= ALU_out_YZ;
+			a3_YZ <= a3_YZ;
+			UARTout_YZ <= UARTout_YZ;
+
+			PCoutreg <= PCoutreg;
 		end
 	end
 end
