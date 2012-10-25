@@ -19,13 +19,17 @@ module BIOSTestbench();
     initial Clock = 0;
     always #(HalfCycle) Clock <= ~Clock;
 
+	reg stall;
+	initial stall = 0;
+	always #(Cycle) stall <= ~stall;
+	
     // Instantiate your CPU here and connect the FPGA_SERIAL_TX wires
     // to the UART we use for testing
 
 MIPS150 CPU(
 	.clk(Clock),
 	.rst(Reset),
-	.stall(1'b0),
+	.stall(stall),
 	.FPGA_SERIAL_RX(FPGA_SERIAL_RX),
 	.FPGA_SERIAL_TX(FPGA_SERIAL_TX)
 );
@@ -123,12 +127,28 @@ MIPS150 CPU(
       #(Cycle)
       DataInValid = 1'b0;
 
+	//stall = 1'b1;
+	
       while (!DataOutValid) #(Cycle);
       $display("Got %d", DataOut);
 	  DataOutReady = 1;
 	  #(Cycle);
 	  DataOutReady = 0;
 
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+	//stall = 1'b0;
+
+      while (!DataOutValid) #(Cycle);
+      $display("Got %d", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+		/*
       //send w
       DataIn = 8'd119;
       while (!DataInReady) #(Cycle);
@@ -341,6 +361,7 @@ MIPS150 CPU(
 	  DataOutReady = 1;
 	  #(Cycle);
 	  DataOutReady = 0;
+		*/
       $finish();
   end
 
