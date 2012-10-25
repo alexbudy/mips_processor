@@ -34,12 +34,13 @@ reg [31:0] PCoutplus4_XY, PCoutplus4_YZ, ALU_out_YZ, UARTout_YZ;
 reg [4:0] a3_YZ;
 reg [31:0] PCoutreg;
 reg [3:0] PCout_XY;
+reg is_bios;
 
 wire RegDest_Y, ALURegSel_Y, RegWrite_Y, RegWrite_Z, MemToReg_Y,MemToReg_Z,  DataOutValid, DataInReady, DataInValid, DataOutReady, PCPlus8_Y, PCPlus8_Z, JALCtrl_Y;
 wire [1:0] JBout;                                     
 wire [2:0] ALUSrcB_Y, LdStCtrl_Y,LdStCtrl_Z;
 wire [3:0] ALUCtrl_Y, JumpBranch_Y, we_i, we_d, PCout_Y;
-wire [31:0] A, B, PC_X, PCout_X, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,ALU_out_Y,ALU_out_Z, wd_Z, RT_shifted, UARTout_Y, UARTout_Z, inst_X, inst_Y, dmem_out;
+wire [31:0] A, B, PC_X, PCout_X, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,ALU_out_Y,ALU_out_Z, wd_Z, RT_shifted, UARTout_Y, UARTout_Z, inst_X, inst_imem_X, inst_bios_X, inst_Y, dmem_out, biosmem_out;
 wire [7:0] UARTwrite, UARTread;
 wire [11:0] mem_adr;
 wire [4:0] a3_Z, a3_Y;
@@ -95,7 +96,7 @@ AddressForMem AddressForMem(
 );                            
 
 LoadLogic LoadLogic(
-			.word(dmem_out),
+			.word((ALU_out_Z[31:28] == 4'd4)?biosmem_out:dmem_out),
 			.LdStCtrl(LdStCtrl_Z),
 			.byte_sel(ALU_out_Z[1:0]),
 			.word_out(LLout)
@@ -147,6 +148,8 @@ ControlUnit ControlUnit(
 );
 
 always @(posedge clk)begin
+	is_bios <= ((stall? PCout_X[31:28] : PC_X[31:28]) == 4'b0100);
+
 	if (rst) begin
 			RegWrite_YZ <= 1'b0 ;
 			MemToReg_YZ <= 1'b0;
@@ -192,7 +195,7 @@ imem_blk_ram imem_blk_ram(
 	.dina(RT_shifted),
 	.clkb(clk),
 	.addrb(stall? PCout_X[13:2] : PC_X[13:2]),
-	.doutb(inst_X)
+	.doutb(inst_imem_X)
 );
 
 dmem_blk_ram dmem_blk_ram(
@@ -202,6 +205,17 @@ dmem_blk_ram dmem_blk_ram(
 	.addra(mem_adr),
 	.dina(RT_shifted),
 	.douta(dmem_out)
+);
+
+bios_mem bios_mem(
+	.clka(clk),
+	.ena(~stall),
+	.addra(stall?PCout_X[13:2] : PC_X[13:2]), //PC
+	.douta(inst_bios_X),
+	.clkb(clk),
+	.enb(~stall),
+	.addrb(mem_adr),  //DATA
+	.doutb(biosmem_out)
 );
 
 //stage one
@@ -219,6 +233,8 @@ end
 assign PC_X = rst ? 32'd0: tempPC; 
 assign PCout_X = PCoutreg; 
 assign PCoutplus4_X = PCout_X + 4;
+
+assign inst_X = is_bios ? inst_bios_X:inst_imem_X;
 
 //stage two
 
