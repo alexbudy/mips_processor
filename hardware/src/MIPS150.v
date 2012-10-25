@@ -45,7 +45,7 @@ assign UARTout_Z = UARTout_YZ;
 
 RegFile RegFile(                            
             .clk(clk),                       
-            .we(RegWrite_Z & !stall),
+            .we(RegWrite_Z & ~stall),
             .ra1(inst_Y[25:21]),   
             .ra2(inst_Y[20:16]),  
             .wa(a3_Z),
@@ -101,7 +101,7 @@ UART UART(
                
 UARTdec UARTdec(
 	.WD(RT[7:0]),
-	.A_Y(ALU_out_Y),
+	.A_Y(ALU_out_Y & {32{~stall}}),
 //	.A_Z(ALU_out_Z),
 	.Read(UARTread),
 	.LdStCtrl(LdStCtrl_Y),
@@ -164,21 +164,6 @@ always @(posedge clk)begin
 			UARTout_YZ <= UARTout_Y;
 
 			PCoutreg <= PC_X;
-		end else begin
-			RegWrite_YZ <= RegWrite_YZ;
-			MemToReg_YZ <= MemToReg_YZ;
-			inst_XY <= inst_XY;
-			PCPlus8_YZ <= PCPlus8_YZ;
-			
-			LdStCtrl_YZ <= LdStCtrl_YZ;
-			PCout_XY <= PCout_XY;
-			PCoutplus4_XY <= PCoutplus4_XY;
-			PCoutplus4_YZ <= PCoutplus4_YZ;
-			ALU_out_YZ <= ALU_out_YZ;
-			a3_YZ <= a3_YZ;
-			UARTout_YZ <= UARTout_YZ;
-
-			PCoutreg <= PCoutreg;
 		end
 	end
 end
@@ -186,19 +171,19 @@ end
 //memory instantiations
 imem_blk_ram imem_blk_ram(
 	.clka(clk),	
-	.ena(1'b1),
-	.wea(we_i & {4{!stall}}),
+	.ena(~stall),
+	.wea(we_i & {4{~stall}}),
 	.addra(mem_adr),
 	.dina(RT_shifted),
 	.clkb(clk),
-	.addrb(PC_X[13:2]),
+	.addrb(stall? PCout_X[13:2] : PC_X[13:2]),
 	.doutb(inst_X)
 );
 
 dmem_blk_ram dmem_blk_ram(
 	.clka(clk),
-	.ena(!stall),
-	.wea(we_d & {4{!stall}}),
+	.ena(~stall),
+	.wea(we_d & {4{~stall}}),
 	.addra(mem_adr),
 	.dina(RT_shifted),
 	.douta(dmem_out)
@@ -239,8 +224,8 @@ assign B = tempB;
 assign wd = (PCPlus8_Z ? PCoutplus4_Z+4:wd_Z);  
 assign a3_Y = (JALCtrl_Y ? 5'd31: (RegDest_Y ? inst_Y[15:11]:inst_Y[20:16]));
 assign PC_shifted_Y = PCoutplus4_Y + ({{16{inst_Y[15]}}, inst_Y[15:0]} << 2); 
-assign RS = (PCPlus8_Z? rd1:((a3_Z == inst_Y[25:21] & RegWrite_Z) ? wd : rd1)); 
-assign RT = (PCPlus8_Z? rd2:((a3_Z == inst_Y[20:16] & RegWrite_Z) ? wd : rd2)); 
+assign RS = (PCPlus8_Z? rd1:((a3_Z == inst_Y[25:21] & RegWrite_Z & ~stall) ? wd : rd1)); 
+assign RT = (PCPlus8_Z? rd2:((a3_Z == inst_Y[20:16] & RegWrite_Z & ~stall) ? wd : rd2)); 
 assign A = (ALURegSel_Y ? RT : RS);
 
 //stage three
