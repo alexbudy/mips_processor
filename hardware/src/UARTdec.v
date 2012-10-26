@@ -42,7 +42,7 @@ module UARTdec(
 			instruction_counter <= 32'd0;
 		end else begin
 			cycle_counter <= cycle_counter + 1;
-			if (stall) instruction_counter <= instruction_counter+1;
+			if (~stall) instruction_counter <= instruction_counter+1;
 		end
 	end
 	
