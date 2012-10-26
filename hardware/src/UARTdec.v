@@ -30,12 +30,17 @@ module UARTdec(
 	reg [31:0] cycle_counter;
 	reg [31:0] instruction_counter;
 	
-	initial cycle_counter = 32'd0;
-	initial instruction_counter = 32'd0;
+	initial cycle_counter <= 32'd0;
+	initial instruction_counter <= 32'd0;
 	
 	always @ (posedge clk) begin
-		cycle_counter = cycle_counter + 1;
-		if (stall) instruction_counter = instruction_counter+1;
+		if (A_Y == 32'h80000018) begin
+			cycle_counter <= 32'd0;
+			instruction_counter <= 32'd0;
+		end else begin
+			cycle_counter <= cycle_counter + 1;
+			if (stall) instruction_counter <= instruction_counter+1;
+		end
 	end
 	
 	always@(*) begin
@@ -88,8 +93,8 @@ module UARTdec(
 				DataInValid = 1'b0;
 				DataOutReady = 1'b0;
 				//reset counters
-				instruction_counter = 32'd0;
-				cycle_counter = 32'd0;
+				//instruction_counter = 32'd0;
+				//cycle_counter = 32'd0;
 				end
 			default:begin
 				Out = 32'd0;
