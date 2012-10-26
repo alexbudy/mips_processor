@@ -20,12 +20,24 @@ module UARTdec(
 	input DataInReady, DataOutValid,
 	input stall,
 	input MemToReg,
+	input clk,
 	output reg [7:0] Write,
 	output reg [31:0] Out,
 	output reg DataInValid,
 	output reg DataOutReady
 );
 
+	reg [31:0] cycle_counter;
+	reg [31:0] instruction_counter;
+	
+	initial cycle_counter = 32'd0;
+	initial instruction_counter = 32'd0;
+	
+	always @ (posedge clk) begin
+		cycle_counter = cycle_counter + 1;
+		if (stall) instruction_counter = instruction_counter+1;
+	end
+	
 	always@(*) begin
 		case(A_Y)
 			32'h80000000:begin	//read DataInReady 
@@ -57,6 +69,27 @@ module UARTdec(
 				DataOutReady = !stall;
 				else
 				DataOutReady = 1'b0;
+				end
+			32'h80000010:begin //Cycle Counter
+				Out = cycle_counter & {32{!stall}};
+				Write = 8'd0;
+				DataInValid = 1'b0;
+				DataOutReady = 1'b0;
+				end
+			32'h80000014:begin //instruction counter
+				Out = instruction_counter & {32{!stall}};
+				Write = 8'd0;
+				DataInValid = 1'b0;
+				DataOutReady = 1'b0;
+				end
+			32'h80000018:begin //reset counters to 0
+				Out = 32'd0;
+				Write = 8'd0;
+				DataInValid = 1'b0;
+				DataOutReady = 1'b0;
+				//reset counters
+				instruction_counter = 32'd0;
+				cycle_counter = 32'd0;
 				end
 			default:begin
 				Out = 32'd0;
