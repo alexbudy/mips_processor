@@ -33,13 +33,14 @@ reg [2:0] LdStCtrl_YZ;
 reg [31:0] PCoutplus4_XY, PCoutplus4_YZ, ALU_out_YZ, UARTout_YZ;
 reg [4:0] a3_YZ;
 reg [31:0] PCoutreg;
-reg [3:0] PCout_XY;
+reg [31:0] PCout_XY, PCout_YZ;
 reg is_bios;
 
 wire RegDest_Y, ALURegSel_Y, RegWrite_Y, RegWrite_Z, MemToReg_Y,MemToReg_Z,  DataOutValid, DataInReady, DataInValid, DataOutReady, PCPlus8_Y, PCPlus8_Z, JALCtrl_Y;
 wire [1:0] JBout;                                     
 wire [2:0] ALUSrcB_Y, LdStCtrl_Y,LdStCtrl_Z;
-wire [3:0] ALUCtrl_Y, JumpBranch_Y, we_i, we_d, PCout_Y;
+wire [3:0] ALUCtrl_Y, JumpBranch_Y, we_i, we_d;
+wire [31:0] PCout_Y, PCout_Z;
 wire [31:0] A, B, PC_X, PCout_X, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,ALU_out_Y,ALU_out_Z, wd_Z, RT_shifted, UARTout_Y, UARTout_Z, inst_X, inst_imem_X, inst_bios_X, inst_Y, dmem_out, biosmem_out;
 wire [7:0] UARTwrite, UARTread;
 wire [11:0] mem_adr;
@@ -53,6 +54,7 @@ assign PCPlus8_Z = PCPlus8_YZ;
 
 assign LdStCtrl_Z = LdStCtrl_YZ;
 assign PCout_Y = PCout_XY;
+assign PCout_Z = PCout_YZ;
 assign PCoutplus4_Y = PCoutplus4_XY;
 assign PCoutplus4_Z = PCoutplus4_YZ;
 assign ALU_out_Z = ALU_out_YZ;
@@ -89,6 +91,7 @@ AddressForMem AddressForMem(
             .RTin(RT),  
             .alu_out(ALU_out_Y),
             .LdStCtrl(LdStCtrl_Y), 
+			.PCout_Y(PCout_Y),
             .mem_adr(mem_adr),    
             .we_i(we_i),         
             .we_d(we_d),        
@@ -157,7 +160,8 @@ always @(posedge clk)begin
 			PCPlus8_YZ <= 1'b0;
 			
 			LdStCtrl_YZ <= 3'd0;
-			PCout_XY <= 4'd0;
+			PCout_XY <= 32'd0;
+			PCout_YZ <= 32'd0;
 			PCoutplus4_XY <= 32'd0;
 			PCoutplus4_YZ <= 32'd0;
 			ALU_out_YZ <= 32'd0;
@@ -174,7 +178,8 @@ always @(posedge clk)begin
 			PCPlus8_YZ <= PCPlus8_Y;
 			
 			LdStCtrl_YZ <= LdStCtrl_Y;
-			PCout_XY <= PCout_X[31:28];
+			PCout_XY <= PCout_X;
+			PCout_YZ <= PCout_Y;
 			PCoutplus4_XY <= PCoutplus4_X;
 			PCoutplus4_YZ <= PCoutplus4_Y;
 			ALU_out_YZ <= ALU_out_Y;
@@ -186,6 +191,7 @@ always @(posedge clk)begin
 	end
 end
   
+/*
 //memory instantiations
 imem_blk_ram imem_blk_ram(
 	.clka(clk),	
@@ -198,14 +204,35 @@ imem_blk_ram imem_blk_ram(
 	.doutb(inst_imem_X)
 );
 
-dmem_blk_ram dmem_blk_ram(
+//b port - read port, a port - write port
+cache_data_blk_ram cache_data_blk_ram(
 	.clka(clk),
 	.ena(~stall),
 	.wea(we_d & {4{~stall}}),
 	.addra(mem_adr),
 	.dina(RT_shifted),
-	.douta(dmem_out)
+	.clkb(clk),
+	.rstb(rst),
+	.enb(~stall & MemToReg & ALU_out_Y[31:30] == 2'd0 & ALU_out_Y[28] = 1'd1  ),
+	.addrb(mem_adr),
+	.doutb(dmem_out)
 );
+*/
+
+//dcache
+assign dcache_addr = ALU_out_Y;	
+assign dcache_we = we_d & {4{~stall}};
+assign dcache_re = ~stall & MemToReg & ALU_out_Y[31:30] == 2'd0 & 
+			ALU_out_Y[28] = 1'd1; 
+assign dcache_din = RT_shifted;
+assign dmem_out = dcache_dout;
+
+//icache
+assign icache_addr = ALU_out_Y[31:28] == 4'b0001? (stall? PCout_X[13:2] : PC_X[13:2]):ALU_out_Y;
+assign icache_we = we_i &{4{~stall}};
+assign icache_re = ~stall & MemToReg & ALU_out_Y[31:29] == 3'b001; 
+assign icache_din = RT_shifted;
+assign inst_imem_X = instruction;
 
 bios_mem bios_mem(
 	.clka(clk),
@@ -225,7 +252,7 @@ always@(*) begin
 	case(JBout)
 		2'b00: tempPC = PCoutplus4_X;	
 		2'b01: tempPC = PC_shifted_Y;	
-		2'b10: tempPC = {PCout_Y,inst_Y[25:0] ,2'b00 };	
+		2'b10: tempPC = {PCout_Y[31:28],inst_Y[25:0] ,2'b00 };	
 		2'b11: tempPC = RS;	
 	endcase
 end

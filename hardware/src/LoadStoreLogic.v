@@ -15,6 +15,7 @@ module AddressForMem (
 	input[31:0] RTin,
 	input[31:0] alu_out,
 	input[2:0] LdStCtrl, //tells us what kind of load/store it is
+	input[31:0] PCout_Y,
 	output[11:0] mem_adr, //adress
 	output reg [3:0] we_i,we_d, 
 	output reg [31:0] RTout
@@ -52,12 +53,13 @@ module AddressForMem (
 	end
 	//for imem/dmem writing
 	always@(*) begin
-		if (!alu_out[31] & alu_out[29])
+		//icache
+		if (alu_out[31:29] == 3'b001 & PCout_Y[30])
 			we_i = we;
 		else 
 			we_i = 4'b0000;
-
-		if (!alu_out[31] & alu_out[28])
+		//dcache
+		if (alu_out[31:28] == 4'b0001 | alu_out[31:28] == 4'b0011 )
 			we_d = we;
 		else 
 			we_d = 4'b0000;
