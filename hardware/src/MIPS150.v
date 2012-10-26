@@ -30,7 +30,7 @@ wire AequalsB;
 reg RegWrite_YZ, MemToReg_YZ, PCPlus8_YZ;
 reg [31:0] inst_XY;
 reg [2:0] LdStCtrl_YZ;
-reg [31:0] PCoutplus4_XY, PCoutplus4_YZ, ALU_out_YZ, UARTout_YZ;
+reg [31:0] PCoutplus4_XY, PCoutplus4_YZ, ALU_out_YZ, UARTout_YZ, RT_shifted_YZ;
 reg [4:0] a3_YZ;
 reg [31:0] PCoutreg;
 reg [31:0] PCout_XY, PCout_YZ;
@@ -41,7 +41,7 @@ wire [1:0] JBout;
 wire [2:0] ALUSrcB_Y, LdStCtrl_Y,LdStCtrl_Z;
 wire [3:0] ALUCtrl_Y, JumpBranch_Y, we_i, we_d;
 wire [31:0] PCout_Y, PCout_Z;
-wire [31:0] A, B, PC_X, PCout_X, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,ALU_out_Y,ALU_out_Z, wd_Z, RT_shifted, UARTout_Y, UARTout_Z, inst_X, inst_imem_X, inst_bios_X, inst_Y, dmem_out, biosmem_out;
+wire [31:0] A, B, PC_X, PCout_X, PCoutplus4_X, PCoutplus4_Y, PCoutplus4_Z, PC_shifted_Y, RS, RT, rd1,rd2,wd,ALU_out_Y,ALU_out_Z, wd_Z, RT_shifted_Y, RT_shifted_Z, UARTout_Y, UARTout_Z, inst_X, inst_imem_X, inst_bios_X, inst_Y, dmem_out, biosmem_out;
 wire [7:0] UARTwrite, UARTread;
 wire [11:0] mem_adr;
 wire [4:0] a3_Z, a3_Y;
@@ -60,6 +60,7 @@ assign PCoutplus4_Z = PCoutplus4_YZ;
 assign ALU_out_Z = ALU_out_YZ;
 assign a3_Z = a3_YZ;
 assign UARTout_Z = UARTout_YZ;
+assign RT_shifted_Z = RT_shifted_YZ;
 
 RegFile RegFile(                            
             .clk(clk),                       
@@ -95,7 +96,7 @@ AddressForMem AddressForMem(
             .mem_adr(mem_adr),    
             .we_i(we_i),         
             .we_d(we_d),        
-            .RTout(RT_shifted)
+            .RTout(RT_shifted_Y)
 );                            
 
 LoadLogic LoadLogic(
@@ -167,6 +168,7 @@ always @(posedge clk)begin
 			ALU_out_YZ <= 32'd0;
 			a3_YZ <= 5'd0;
 			UARTout_YZ <= 32'd0;
+			RT_shifted_YZ <= 32'd0;
 			
 			PCoutreg <= 32'd0;
 	end
@@ -185,6 +187,7 @@ always @(posedge clk)begin
 			ALU_out_YZ <= ALU_out_Y;
 			a3_YZ <= a3_Y;
 			UARTout_YZ <= UARTout_Y;
+			RT_shifted_YZ <= RT_shifted_Y;
 
 			PCoutreg <= PC_X;
 		end
@@ -220,18 +223,19 @@ cache_data_blk_ram cache_data_blk_ram(
 */
 
 //dcache
-assign dcache_addr = ALU_out_Y;	
-assign dcache_we = we_d & {4{~stall}};
-assign dcache_re = ~stall & MemToReg & ALU_out_Y[31:30] == 2'd0 & 
-			ALU_out_Y[28] = 1'd1; 
-assign dcache_din = RT_shifted;
+assign dcache_addr = stall? ALU_out_Z : ALU_out_Y;	
+assign dcache_we = we_d;
+assign dcache_re = (stall ? (ALU_out_Z[31:30] == 2'd0 & ALU_out_Z[28]):(ALU_out_Y[31:30] == 2'd0 & ALU_out_Y[28])) & (stall? MemToReg_Z : MemToReg_Y); 
+assign dcache_din = stall ? RT_shifted_Z : RT_shifted_Y;
 assign dmem_out = dcache_dout;
 
 //icache
-assign icache_addr = ALU_out_Y[31:28] == 4'b0001? (stall? PCout_X[13:2] : PC_X[13:2]):ALU_out_Y;
-assign icache_we = we_i &{4{~stall}};
-assign icache_re = ~stall & MemToReg & ALU_out_Y[31:29] == 3'b001; 
-assign icache_din = RT_shifted;
+assign icache_addr = ((stall? PCout_X[31:28] : PC_X[31:28]) == 4'b0001)? (stall? PCout_X : PC_X): (stall?ALU_out_Z:ALU_out_Y);
+assign icache_we = we_i;
+//assign icache_re = ~stall & (PC_out_Z[31:28] == 4'b0001); 
+assign icache_re = stall? (PCout_X[31:28] == 4'b0001):(PC_X[31:28] == 4'b0001);
+assign icache_din = stall ? RT_shifted_Z : RT_shifted_Y;
+
 assign inst_imem_X = instruction;
 
 bios_mem bios_mem(
