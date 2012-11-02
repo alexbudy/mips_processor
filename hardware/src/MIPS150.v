@@ -1,3 +1,5 @@
+`include "Opcode.vh"
+
 module MIPS150(
     input clk,
     input rst,
@@ -35,6 +37,7 @@ reg [4:0] a3_YZ;
 reg [31:0] PCoutreg;
 reg [31:0] PCout_XY, PCout_YZ;
 reg is_bios, is_isr;
+reg prevDataOutValid, prevDataInReady;
 
 wire RegDest_Y, ALURegSel_Y, RegWrite_Y, RegWrite_Z, MemToReg_Y,MemToReg_Z,  DataOutValid, DataInReady, DataInValid, DataOutReady, PCPlus8_Y, PCPlus8_Z, JALCtrl_Y;
 wire [1:0] JBout;                                     
@@ -46,6 +49,16 @@ wire [7:0] UARTwrite, UARTread;
 wire [11:0] mem_adr;
 wire [4:0] a3_Z, a3_Y;
 wire [31:0] LLout; //Load logic out
+wire InterruptHandled, InterruptRequest;
+wire [31:0]  ALU_output, COP_out;
+
+
+assign InterruptHandled = !stall & InterruptRequest & (JumpBranch_Y == 3'b000 & 
+							inst_X[31:26] != `J & inst_X[31:26] != `JAL &
+							inst_X[31:26] != `BEQ & inst_X[31:26] != `BNE &  
+							inst_X[31:26] != `BLEZ & inst_X[31:26] != `BGTZ & 
+							inst_X[31:26] != `BLTZ_BGEZ & 
+							!(inst_X[31:26] == `RTYPE & (inst_X[5:0] == 6'b001000 | inst_X[5:0] == 6'b001001))); 
 
 assign RegWrite_Z = RegWrite_YZ;
 assign MemToReg_Z = MemToReg_YZ;
@@ -75,26 +88,28 @@ RegFile RegFile(
 
 COP0150 COP0150(
 			.Clock(clk),
-			.Enable( ),
+			.Enable(1'b1 ),
 			.Reset(rst),
-			.DataAddress( ),
-			.DataOut( ),
-			.DataInEnable( ),
-			.DataIn( ),
-			.InterruptedPC( ),
-			.InterruptHandled( ),
-			.InterruptRequest( ),
-			.UART0Request( ),
-			.UART1Request( )
+			.DataAddress(inst_Y[15:11]),
+			.DataOut(COP_out),
+			.DataInEnable((inst_Y[31:26] == 6'b010000) & (inst_Y[25:21] == 5'b00100) & ~stall), //high only if mtc0 inst
+			.DataIn(RT),
+			.InterruptedPC(PC_X),
+			.InterruptHandled(InterruptHandled),
+			.InterruptRequest(InterruptRequest),
+			.UART0Request(prevDataOutValid == 1'b0 & DataOutValid == 1'b1 ),
+			.UART1Request(prevDataInReady == 1'b0 & DataInReady == 1'b1 )
 );
                    
 ALU ALU(          
             .A(A),
             .B(B),
             .ALUop(ALUCtrl_Y),
-            .Out(ALU_out_Y),   
+            .Out(ALU_output),   
             .AequalsB(AequalsB)
 );                            
+
+assign ALU_out_Y = (inst_Y[31:26] == 6'b010000 & inst_Y[25:21] == 5'b00000)? COP_out:ALU_output; //selects depending on <is inst mfc>
 
 JBLogic JBLogic(
 			.JumpBranch(JumpBranch_Y),
@@ -123,7 +138,7 @@ LoadLogic LoadLogic(
 );
                   
 UART UART(        
-        .Clock(clk),
+    .Clock(clk),
 	.Reset(rst),
 	.DataIn(UARTwrite),    
 	.DataInValid(DataInValid),
@@ -138,7 +153,6 @@ UART UART(
 UARTdec UARTdec(
 	.WD(RT[7:0]),
 	.A_Y(ALU_out_Y & {32{~stall}}),
-//	.A_Z(ALU_out_Z),
 	.Read(UARTread),
 	.LdStCtrl(LdStCtrl_Y),
 	.DataInReady(DataInReady),
@@ -154,9 +168,10 @@ UARTdec UARTdec(
 
 ControlUnit ControlUnit(
 	.rt(inst_Y[20:16]),
+	.rs(inst_Y[25:21]),
 	.opcode(inst_Y[31:26]),
 	.funct(inst_Y[5:0]),
-.PCPlus8(PCPlus8_Y),
+	.PCPlus8(PCPlus8_Y),
 	.RegDest(RegDest_Y),
 	.ALURegSel(ALURegSel_Y),
 	.JALCtrl(JALCtrl_Y),
@@ -170,10 +185,10 @@ ControlUnit ControlUnit(
 
 always @(posedge clk)begin
 	is_bios <= ((stall? PCout_X[31:28] : PC_X[31:28]) == 4'b0100);
-	is_isr <= ((stall? PCout_X[31:28 : PC_X[31:28]) == 4'b1100);
+	is_isr <= ((stall? PCout_X[31:28] : PC_X[31:28]) == 4'b1100);
 
 	if (rst) begin
-			RegWrite_YZ <= 1'b0 ;
+			RegWrite_YZ <= 1'b0;
 			MemToReg_YZ <= 1'b0;
 			inst_XY <= 32'd0;
 			PCPlus8_YZ <= 1'b0;
@@ -187,7 +202,9 @@ always @(posedge clk)begin
 			a3_YZ <= 5'd0;
 			UARTout_YZ <= 32'd0;
 			RT_shifted_YZ <= 32'd0;
-			
+
+			prevDataOutValid <= 1'd0;
+			prevDataInReady <= 1'd0;
 			PCoutreg <= 32'd0;
 	end
 	else begin
@@ -207,6 +224,8 @@ always @(posedge clk)begin
 			UARTout_YZ <= UARTout_Y;
 			RT_shifted_YZ <= RT_shifted_Y;
 
+			prevDataOutValid <= DataOutValid;
+			prevDataInReady <= DataInReady;
 			PCoutreg <= PC_X;
 		end
 	end
@@ -262,7 +281,7 @@ always@(*) begin
 	endcase
 end
 
-assign PC_X = rst ? 32'd0: tempPC; 
+assign PC_X = rst ? 32'd0: (InterruptHandled ? 32'hC0000180 : tempPC) ; 
 assign PCout_X = PCoutreg; 
 assign PCoutplus4_X = PCout_X + 4;
 

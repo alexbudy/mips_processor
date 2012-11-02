@@ -349,7 +349,7 @@ always@(*) begin
 			end	
 		`MFC_MTC:
 			begin
-			if (rs[25:21] == 5'b00000)	begin //MFC
+			if (rs == 5'b00000)	begin //MFC
 			PCPlus8 = 1'b0;
 			RegDest = 1'b0;
 			ALURegSel = 1'b1;
@@ -358,7 +358,7 @@ always@(*) begin
 			RegWrite = 1'b1;
 			MemToReg = 1'b0;
 			LdStCtrl = 3'b000;
-			JumpBranch 4'b0000;
+			JumpBranch = 4'b0000;
 			end else begin //MTC
 			PCPlus8 = 1'b0;
 			RegDest = 1'b0;
@@ -368,7 +368,7 @@ always@(*) begin
 			RegWrite = 1'b0;
 			MemToReg = 1'b0;
 			LdStCtrl = 3'b000;
-			JumpBranch 4'b0000;
+			JumpBranch = 4'b0000;
 
 			end
 			
