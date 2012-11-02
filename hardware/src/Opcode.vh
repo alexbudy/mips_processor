@@ -47,4 +47,8 @@
 `define BLEZ 	6'b000110
 `define BGTZ 	6'b000111
 `define BLTZ_BGEZ 6'b000001
+
+// CoProcessors
+`define MFC		6'010000
+`define MTC		6'010000
 `endif //OPCODE

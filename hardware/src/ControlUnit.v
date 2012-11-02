@@ -22,9 +22,10 @@
 `include "ALUop.vh"
    
 module ControlUnit(input[4:0] rt, 
+	   input[4:0] rs,
 	   input[5:0] opcode,
 	   input[5:0] funct,
-	   output reg PCPlus8, RegDest, ALURegSel,JALCtrl, RegWrite, MemToReg,
+	   output reg PCPlus8, RegDest, ALURegSel,JALCtrl, RegWrite, MemToReg, COPWrite,
  	   output reg [3:0] ALUCtrl, 
 	   output reg [2:0] ALUSrcB, LdStCtrl,
 	   output reg [3:0] JumpBranch	
@@ -51,6 +52,7 @@ always@(*) begin
 						JALCtrl = 1'b0;
 						RegWrite = 1'b1;
 						MemToReg = 1'b0;
+						COPWrite = 1'b0;
 						LdStCtrl = 3'b000;
 						JumpBranch = 4'b0000;
 						end
@@ -345,6 +347,10 @@ always@(*) begin
 			if (rt==5'b00000) JumpBranch = 4'b0111;
 			else JumpBranch = 4'b1000;
 			end	
+		`MFC, `MTC:
+			begin
+
+			end
 		default:
 			begin
 			PCPlus8 = 1'b0;

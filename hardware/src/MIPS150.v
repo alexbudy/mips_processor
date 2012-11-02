@@ -73,7 +73,20 @@ RegFile RegFile(
             .rd2(rd2)
 );                  
 
-
+COP0150 COP0150(
+			.Clock(clk),
+			.Enable( ),
+			.Reset(rst),
+			.DataAddress( ),
+			.DataOut( ),
+			.DataInEnable( ),
+			.DataIn( ),
+			.InterruptedPC( ),
+			.InterruptHandled( ),
+			.InterruptRequest( ),
+			.UART0Request( ),
+			.UART1Request( )
+);
                    
 ALU ALU(          
             .A(A),
