@@ -17,7 +17,7 @@ module AddressForMem (
 	input[2:0] LdStCtrl, //tells us what kind of load/store it is
 	input[31:0] PCout_Y,
 	output[11:0] mem_adr, //adress
-	output reg [3:0] we_i,we_d, 
+	output reg [3:0] we_i,we_d, we_isr, 
 	output reg [31:0] RTout
 );
 
@@ -63,6 +63,11 @@ module AddressForMem (
 			we_d = we;
 		else 
 			we_d = 4'b0000;
+		//isr
+		if (alu_out[31:28] == 4'b1100)
+			we_isr = we;
+		else 
+			we_isr = 4'b0000;
 	end
 endmodule
 
