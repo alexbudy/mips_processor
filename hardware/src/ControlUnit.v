@@ -6,13 +6,14 @@
 //	funct: Inst[5:0]
 //Outputs:
 //	PCPlus8: Turns 1 for JAL,JALR instruction
-//	RegDest: 1 for R-type, J-type and 0 for I-type
+//	RegDest: 1 for R-type, J-type and 0 for I-type, 0 for MFC, MTC,
+//	(0->rt, 1->rt)
 //	ALURegSel: 0 for I-type,J-type,R-type[2], 1 otherwise
 //		(R-type[2] refers to: ADDU,SUBU,AND...)
 //	ALUCtrl[3:0]: See aludec.v
 //	JALCtrl: 1 for JAL
 //	ALUSrcB: 3'b000-RT,001-RS,010-SEXT(IMM),011-ZEXT(IMM),100-32'd0,101-shamt
-//	RegWrite: 1 except for stores, J,JR,and branches
+//	RegWrite: 1 except for stores, J,JR, branches and mtc
 //	MemToReg: 1 for loads
 //	LdStCtrl: 3'b000-LB, default, 001-LH, 010-LW, 011-LBU 100-LHU, 101-SB, 110-SH, 111-SW
 //	JumpBranch[3:0]: 0000-no jump, 0001-J,JAL,0010-JR,JALR,0011-BEQ,
@@ -22,10 +23,10 @@
 `include "ALUop.vh"
    
 module ControlUnit(input[4:0] rt, 
-	   input[4:0] rs,
+		input [4:0] rs,
 	   input[5:0] opcode,
 	   input[5:0] funct,
-	   output reg PCPlus8, RegDest, ALURegSel,JALCtrl, RegWrite, MemToReg, COPWrite,
+	   output reg PCPlus8, RegDest, ALURegSel,JALCtrl, RegWrite, MemToReg,
  	   output reg [3:0] ALUCtrl, 
 	   output reg [2:0] ALUSrcB, LdStCtrl,
 	   output reg [3:0] JumpBranch	
@@ -52,7 +53,6 @@ always@(*) begin
 						JALCtrl = 1'b0;
 						RegWrite = 1'b1;
 						MemToReg = 1'b0;
-						COPWrite = 1'b0;
 						LdStCtrl = 3'b000;
 						JumpBranch = 4'b0000;
 						end
@@ -347,8 +347,31 @@ always@(*) begin
 			if (rt==5'b00000) JumpBranch = 4'b0111;
 			else JumpBranch = 4'b1000;
 			end	
-		`MFC, `MTC:
+		`MFC_MTC:
 			begin
+			if (rs[25:21] == 5'b00000)	begin //MFC
+			PCPlus8 = 1'b0;
+			RegDest = 1'b0;
+			ALURegSel = 1'b1;
+			JALCtrl = 1'b0;
+			ALUSrcB = 3'b000;
+			RegWrite = 1'b1;
+			MemToReg = 1'b0;
+			LdStCtrl = 3'b000;
+			JumpBranch 4'b0000;
+			end else begin //MTC
+			PCPlus8 = 1'b0;
+			RegDest = 1'b0;
+			ALURegSel = 1'b1;
+			JALCtrl = 1'b0;
+			ALUSrcB = 3'b000;
+			RegWrite = 1'b0;
+			MemToReg = 1'b0;
+			LdStCtrl = 3'b000;
+			JumpBranch 4'b0000;
+
+			end
+			
 
 			end
 		default:
