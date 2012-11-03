@@ -22,7 +22,7 @@ lui $k0, 0x02FA
 ori $k0, $k0, 0xF080
 addu $k0, $k0, $k1
 mtc0 $k0, $13
-J done
+j done
 
 RTC_ISR:
 lw $k0, 0x1ccccccc
