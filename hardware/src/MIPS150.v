@@ -88,7 +88,7 @@ RegFile RegFile(
 
 COP0150 COP0150(
 			.Clock(clk),
-			.Enable(1'b1 ),
+			.Enable(1'b1),
 			.Reset(rst),
 			.DataAddress(inst_Y[15:11]),
 			.DataOut(COP_out),
