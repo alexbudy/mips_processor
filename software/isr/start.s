@@ -42,5 +42,5 @@ done:
 mfc0 $k1, $12
 ori $k1, $k1, 1
 mfc0 $k0, $14
-j $k0
+jr $k0
 mtc0 $k1, $12
