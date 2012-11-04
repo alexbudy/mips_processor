@@ -205,7 +205,7 @@ always @(posedge clk)begin
 
 			prevDataOutValid <= 1'd0;
 			prevDataInReady <= 1'd0;
-			PCoutreg <= 32'd0;
+			PCoutreg <= 32'h40000000;
 	end
 	else begin
 		if (!stall) begin
@@ -281,7 +281,7 @@ always@(*) begin
 	endcase
 end
 
-assign PC_X = rst ? 32'd0: (InterruptHandled ? 32'hC0000180 : tempPC) ; 
+assign PC_X = rst ? 32'h40000000: (InterruptHandled ? 32'hC0000180 : tempPC) ; 
 assign PCout_X = PCoutreg; 
 assign PCoutplus4_X = PCout_X + 4;
 
