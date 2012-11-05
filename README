@@ -1,8 +1,36 @@
 checkpoint three temproary addresses for important variables:
 state: 0x100000c0
-timerRTC: 0x100000c4
+SW_RTC: 0x100000c4
+timer_print_bit: 0x100000c8
 inIdx: 0x100000d0
 outIdx: 0x100000d4
 buffer: 0x100000d8
 
+
 start program: 0x10000d00
+
+spec broken down:
+isr resides in start.s (isr folder) 
+
+timer isr: 
+add 1 second to compare register (50M cycles)
+if timer_print_bit is set:
+	send out through uart in mm:ss using out(s) (s is a string)
+
+rtc_isr:
+increment every time count overflows
+assume each overflow is one minute (80sseconds)
+
+UARTRX_isr: (done in assembly in start.s)
+receive from UART, store to STATE
+case (state)
+	e: set timer_print_bit (global var)
+	d: clear timer_print_bit
+	else stores into STATE (used by application code)
+
+UARTTX_isr: 
+if FIFO empty (inIdx == outIdx) send null (or carat for debugging)
+otherwise dequeue from fifo
+jal to write_UART
+
+

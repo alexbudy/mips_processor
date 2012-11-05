@@ -1,13 +1,15 @@
 #define COUNT 0x10000010
+#define STATE (*((volatile unsigned int*)0x1dddddd0))
+
 int main(){
 int tstart, tend;
 register int a;
-static volatile int b, state = 'r', *address;
+static volatile int b, *address;
 char s[100];
 	
 address = COUNT;
 
-while(1) switch(state){
+while(1) switch(STATE){
 	case 'r':
 		tstart = *address;
 		r100M();
