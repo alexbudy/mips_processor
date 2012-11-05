@@ -1,5 +1,5 @@
 #define COUNT 0x10000010
-#define STATE (*((volatile unsigned int*)0x1dddddd0))
+#define STATE (*((volatile unsigned int*)0x100000c0))
 
 int main(){
 int tstart, tend;
@@ -38,18 +38,6 @@ while(1) switch(STATE){
 		sprint(s,"V:%d",tstart-tend);
 		out(s);
 		break;	
-	case 'd':
-		asm("mfc0 $k0, $12");
-		asm("andi $k0, 0x7FFF");
-		asm("mtc0 $k0, $12");
-		break;
-	case 'e':
-		asm("mfc0 $k0, $12");
-		asm("ori $k1, $k1, 0x8000");
-		asm("mtc0 $k0, $12");
-		break;
-	default:
-		sprint("ERROR: hit default of switch case");
 			
 			
 }

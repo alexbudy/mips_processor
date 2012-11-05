@@ -1,4 +1,5 @@
 checkpoint three temproary addresses for important variables:
+pass time value to function: 0x100000a0
 state: 0x100000c0
 SW_RTC: 0x100000c4
 timer_print_bit: 0x100000c8
