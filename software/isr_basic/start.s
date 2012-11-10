@@ -9,6 +9,8 @@ andi $k1, 0xfc00
 and  $k0, $k0, $k1
 andi $k1, $k0, 0x8000
 bne  $k1, $0, timer_ISR
+andi $k1, $k0, 0x0800
+bne  $k1, $0, UART_TX
 j done
 
 
@@ -45,6 +47,21 @@ li $k0, 0x4d #letter = M
 li $k1, 0x80000008
 sw $k0, 0($k1)
 j done
+
+
+
+UART_TX:
+li $k0, 0x80000000
+lw $k1, 0($k0)
+andi $k1, $k1, 0x1
+beq  $k1, $0, done #if DataInReady is low, go to done
+li $k0, 0x100000d0
+lw $k0, 0($k0) #inIdx
+li $k1, 0x100000d4
+lw $k1, 0($k1) #inIdx
+beq $k1, $k0, done #if indexes are equal, jump to done
+
+
 
 
 done:
