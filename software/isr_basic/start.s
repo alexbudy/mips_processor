@@ -11,6 +11,8 @@ andi $k1, $k0, 0x8000
 bne  $k1, $0, timer_ISR
 andi $k1, $k0, 0x0800
 bne  $k1, $0, UART_TX
+andi $k1, $k0, 0x4000
+bne  $k1, $0, RTC_ISR
 j done
 
 
@@ -74,6 +76,18 @@ li #k0, 0x14 #buf size = 20
 bne $k1, $k0, done
 li $k0, 0x100000d4
 sw $0, 0($k0)
+j done
+
+
+RTC_ISR:
+li $k0, 0x100000c4
+lw $k1, 0($k0)
+addiu $k1, $k1, 1
+sw $k1, 0($k0)
+mfc0 $k1, $13
+li $k0, 0xffffbfff 
+and $k1, $k1, $k0
+mtc0 @k1, $13
 j done
 
 
