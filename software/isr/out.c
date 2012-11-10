@@ -54,5 +54,5 @@ void send_time () {
 	str[5] = 0x0d;
 	str[6] = 0x00;
 
-	out(*str);
+	out(str);
 }

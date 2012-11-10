@@ -71,7 +71,7 @@ sw $k1, 0x100000c8
 j done
 nop
 
-UNSET_TIMER_PRINT
+UNSET_TIMER_PRINT:
 li $k0, 0x00000000
 sw $k1, 0x100000c8 
 j done
