@@ -36,5 +36,6 @@ case (state)
 UARTTX_isr: 
 >? if FIFO empty (inIdx == outIdx) jump to done
 otherwise dequeue from fifo (only if DataInReady is high)
+if outIdx == buffer size, outIdx = 0
 
 
