@@ -9,8 +9,7 @@ _start:
 addiu $t1, $0, 0xffff
 mtc0 $t1, $12
 
-mfc0 $t5, $9
-addiu $t5, $t5, 20
+addiu $t5, $0, 0x7f
 mtc0 $t5, $11
 
 addiu $s7, $0, 0x0

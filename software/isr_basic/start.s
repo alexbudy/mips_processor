@@ -15,7 +15,7 @@ j done
 
 timer_ISR:
 mfc0 $k1, $11 #COMPARE
-li   $k0, 0xa #3
+li   $k0, 0x100 #
 #li   $k0, 0x02faf080 #50_000_000
 addu  $k0, $k0, $k1
 mtc0 $k0, $11
