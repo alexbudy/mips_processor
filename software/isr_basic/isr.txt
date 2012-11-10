@@ -1,0 +1,32 @@
+
+isr.elf:     file format elf32-bigmips
+
+
+Disassembly of section .text:
+
+c0000000 <_start>:
+c0000000:	401a6800 	mfc0	k0,c0_cause
+c0000004:	401b6000 	mfc0	k1,c0_sr
+c0000008:	00000000 	nop
+c000000c:	337bfc00 	andi	k1,k1,0xfc00
+c0000010:	035bd024 	and	k0,k0,k1
+c0000014:	08000008 	j	c0000020 <done>
+c0000018:	00000000 	nop
+c000001c:	00000000 	nop
+
+c0000020 <done>:
+c0000020:	401b6000 	mfc0	k1,c0_sr
+c0000024:	00000000 	nop
+c0000028:	377b0001 	ori	k1,k1,0x1
+c000002c:	401a7000 	mfc0	k0,c0_epc
+c0000030:	00000000 	nop
+c0000034:	03400008 	jr	k0
+c0000038:	00000000 	nop
+c000003c:	409b6000 	mtc0	k1,c0_sr
+
+Disassembly of section .reginfo:
+
+00000000 <.reginfo>:
+   0:	0c000000 	jal	0 <_start-0xc0000000>
+   4:	00000000 	nop
+	...

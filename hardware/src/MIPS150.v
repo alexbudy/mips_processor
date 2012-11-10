@@ -94,7 +94,7 @@ COP0150 COP0150(
 			.DataOut(COP_out),
 			.DataInEnable((inst_Y[31:26] == 6'b010000) & (inst_Y[25:21] == 5'b00100) & ~stall), //high only if mtc0 inst
 			.DataIn(RT),
-			.InterruptedPC(PC_X),
+			.InterruptedPC(PCoutplus4_X),
 			.InterruptHandled(InterruptHandled),
 			.InterruptRequest(InterruptRequest),
 			.UART0Request(prevDataOutValid == 1'b0 & DataOutValid == 1'b1 ),
@@ -203,8 +203,8 @@ always @(posedge clk)begin
 			UARTout_YZ <= 32'd0;
 			RT_shifted_YZ <= 32'd0;
 
-			prevDataOutValid <= 1'd0;
-			prevDataInReady <= 1'd0;
+			prevDataOutValid <= DataOutValid;
+			prevDataInReady <= DataInReady;
 			PCoutreg <= 32'h40000000;
 	end
 	else begin
@@ -281,7 +281,7 @@ always@(*) begin
 	endcase
 end
 
-assign PC_X = rst ? 32'h40000000: (InterruptHandled ? 32'hC0000180 : tempPC) ; 
+assign PC_X = rst ? 32'h40000000: (InterruptHandled ? 32'hc0000000 : tempPC) ; 
 assign PCout_X = PCoutreg; 
 assign PCoutplus4_X = PCout_X + 4;
 
