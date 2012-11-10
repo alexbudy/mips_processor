@@ -58,10 +58,23 @@ beq  $k1, $0, done #if DataInReady is low, go to done
 li $k0, 0x100000d0
 lw $k0, 0($k0) #inIdx
 li $k1, 0x100000d4
-lw $k1, 0($k1) #inIdx
+lw $k1, 0($k1) #outIdx
 beq $k1, $k0, done #if indexes are equal, jump to done
-
-
+li $k0, 0x100000d4 #outIdx
+li $k1, 0x100000d8 #buffer
+add $k1, $k1, $k0
+lb $k0, 0($k1)
+li $k1, 0x80000008
+sw $k0, 0($k1) #send byte over UART
+li $k0, 0x100000d4
+lw $k1, 0($k0) #load outIdx to incr
+addiu $k1, $k1, 1
+sw $k1, 0($k0) #store incremented outIdx
+li #k0, 0x14 #buf size = 20
+bne $k1, $k0, done
+li $k0, 0x100000d4
+sw $0, 0($k0)
+j done
 
 
 done:
