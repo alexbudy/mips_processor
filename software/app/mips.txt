@@ -1,0 +1,42 @@
+
+app.elf:     file format elf32-bigmips
+
+
+Disassembly of section .text:
+
+10000d00 <_start>:
+10000d00:	3c1d1000 	lui	sp,0x1000
+10000d04:	0c000343 	jal	10000d0c <main>
+10000d08:	37bd0d00 	ori	sp,sp,0xd00
+
+10000d0c <main>:
+10000d0c:	27bdff78 	addiu	sp,sp,-136
+10000d10:	afa00010 	sw	zero,16(sp)
+10000d14:	341af80f 	li	k0,0xf80f
+10000d18:	409a6000 	mtc0	k0,c0_sr
+10000d1c:	08000347 	j	10000d1c <main+0x10>
+10000d20:	00000000 	nop
+
+Disassembly of section .sbss:
+
+10000d24 <main.b>:
+10000d24:	00000000 	nop
+
+10000d28 <main.address>:
+10000d28:	00000000 	nop
+
+Disassembly of section .reginfo:
+
+00000000 <.reginfo>:
+   0:	24000000 	li	zero,0
+	...
+
+Disassembly of section .pdr:
+
+00000000 <.pdr>:
+   0:	10000d0c 	b	3434 <_start-0xfffd8cc>
+   4:	00000000 	nop
+	...
+  14:	00000088 	0x88
+  18:	0000001d 	0x1d
+  1c:	0000001f 	0x1f

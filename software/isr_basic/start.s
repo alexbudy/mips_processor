@@ -19,8 +19,8 @@ j done
 
 timer_ISR:
 mfc0 $k1, $11 #COMPARE
-li   $k0, 0x100 #
-#li   $k0, 0x02faf080 #50_000_000
+#li   $k0, 0x100 #
+li   $k0, 0x02faf080 #50_000_000
 addu  $k0, $k0, $k1
 mtc0 $k0, $11
 li   $k0, 0x100000b0 #load seconds passed
@@ -45,11 +45,34 @@ li $k0, 0x00000001
 bne $k0, $k1, done
 #if we get here, need to send time to uart/fifo
 #for now, send a byte (no fifo implemented yet)
-li $k0, 0x4d #letter = M
-li $k1, 0x80000008
-sw $k0, 0($k1)
-j done
+li $k0, 0x100000b4
+lw $k1, 0($k0)
+li $k0, 0x000000f0
+ori $k1, $k1, $k0
+srl $k1, $k1, 4
+li $k0, 0x100000b8
+sw $k1, 0($k0)
+j send_byte
 
+back:
+j UART_TX #jump to UART_TX, which will attempt to send a byte or jump to done if cant
+
+send_byte: #send the byte stored at $k1
+li $k0, 0x100000d0  #inIdx adr
+lw $k1, 0($k0)      #load inIdx to k1
+li $k0, 0x100000d8  #buffer adr
+addu $k0, $k1, $k0  #add inIdx to buffer addr
+li $k1, 0x50 #letter P
+sb $k1, 0($k0)
+li $k0, 0x100000d0  #inIdx adr
+lw $k1, 0($k0)      #load inIdx to k1
+addiu $k1, $k1, 1 #incremenent inIdx
+sw $k1, 0($k0)   #store back
+li $k0, 0x14 #20
+bne $k0, $k1, back 
+li $k0, 0x100000d0
+sw $0, 0($k0)
+j back
 
 
 UART_TX:
