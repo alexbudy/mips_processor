@@ -1,6 +1,7 @@
 checkpoint three temproary addresses for important variables:
 seconds passed:  0x100000b0 (set to ZERO upon init)
 minutes passed:  0x100000b4 (set to ZERO upon init)
+byte to send:    0x100000b8 (used as a temp global in print_time isr)
 state:           0x100000c0
 SW_RTC:          0x100000c4 (set to ZERO upon init)
 timer_print_bit: 0x100000c8 (set to ONE upon init)
