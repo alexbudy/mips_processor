@@ -210,6 +210,85 @@ module EchoTestbenchCaches();
       Reset = 1;
       repeat (30) @( posedge cpu_clk_g );
       Reset = 0;
+
+      // Wait for something to come back
+      @( posedge DataOutValid ) ;
+      @( posedge cpu_clk_g ) ;
+      $display("Got %h", DataOut);
+	  DataOutReady = 1;
+	  #(Cycle);
+	  DataOutReady = 0;
+
+      // Wait for something to come back
+      @( posedge DataOutValid ) ;
+      @( posedge cpu_clk_g ) ;
+      $display("Got %h", DataOut);
+
+      // Wait for something to come back
+      @( posedge DataOutValid ) ;
+      @( posedge cpu_clk_g ) ;
+      $display("Got %h", DataOut);
+
+      // Wait for something to come back
+      @( posedge DataOutValid ) ;
+      @( posedge cpu_clk_g ) ;
+      $display("Got %h", DataOut);
+
+      // Wait for something to come back
+      @( posedge DataOutValid ) ;
+      @( posedge cpu_clk_g ) ;
+      $display("Got %h", DataOut);
+
+      // Wait for something to come back
+      @( posedge DataOutValid ) ;
+      @( posedge cpu_clk_g ) ;
+      $display("Got %h", DataOut);
+
+      // Wait for something to come back
+      @( posedge DataOutValid ) ;
+      @( posedge cpu_clk_g ) ;
+      $display("Got %h", DataOut);
+
+      // Wait for something to come back
+      @( posedge DataOutValid ) ;
+      @( posedge cpu_clk_g ) ;
+      $display("Got %h", DataOut);
+
+      // Wait for something to come back
+      @( posedge DataOutValid ) ;
+      @( posedge cpu_clk_g ) ;
+      $display("Got %h", DataOut);
+
+      // Wait for something to come back
+      @( posedge DataOutValid ) ;
+      @( posedge cpu_clk_g ) ;
+      $display("Got %h", DataOut);
+
+      // Wait for something to come back
+      @( posedge DataOutValid ) ;
+      @( posedge cpu_clk_g ) ;
+      $display("Got %h", DataOut);
+
+      // Wait for something to come back
+      @( posedge DataOutValid ) ;
+      @( posedge cpu_clk_g ) ;
+      $display("Got %h", DataOut);
+
+      // Wait for something to come back
+      @( posedge DataOutValid ) ;
+      @( posedge cpu_clk_g ) ;
+      $display("Got %h", DataOut);
+
+      // Wait for something to come back
+      @( posedge DataOutValid ) ;
+      @( posedge cpu_clk_g ) ;
+      $display("Got %h", DataOut);
+
+      // Wait for something to come back
+      @( posedge DataOutValid ) ;
+      @( posedge cpu_clk_g ) ;
+      $display("Got %h", DataOut);
+
       // Wait for something to come back
       @( posedge DataOutValid ) ;
       @( posedge cpu_clk_g ) ;

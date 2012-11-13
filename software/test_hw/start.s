@@ -3,6 +3,23 @@
 
 _start:
 
+#initialize global variables to ZEROS
+li $t0, 0x100000b0  #seconds
+li $t1, 0x100000b4  #minutes
+li $t2, 0x100000c4  #rtc
+li $t3, 0x100000c8  #timer print
+li $t4, 0x100000d0  #inIdx
+li $t5, 0x100000d4  #outIdx
+li $t6, 0x1        #for the print bit
+
+sw $0, 0($t0)
+sw $0, 0($t1)
+sw $0, 0($t2)
+sw $t6, 0($t3)
+sw $0, 0($t4)
+sw $0, 0($t5)
+
+
 
 #set seconds and minutes to ZERO
 
