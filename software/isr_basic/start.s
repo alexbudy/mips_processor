@@ -23,13 +23,13 @@ andi $k1, $k1, 0x7fff
 mtc0 $k1, $13
 
 mfc0 $k1, $11 #COMPARE
-li   $k0, 0x1000 #
+li   $k0, 0x300 #
 #li   $k0, 0x02faf080 #50_000_000
 addu  $k0, $k0, $k1
 mtc0 $k0, $11
 li   $k0, 0x100000b0 #load seconds passed
 lw   $k1, 0($k0)
-addiu $k1, $k1, 1
+addiu $k1, $k1, 0x1
 sw   $k1, 0($k0)
 li   $k0, 0x3c  #check if seconds is 60
 bne  $k0, $k1, print_time #go to print time if seconds < 60
@@ -38,7 +38,7 @@ li   $k0, 0x100000b0
 sw   $k1, 0($k0)
 li   $k0, 0x100000b4
 lw   $k1, 0($k0)
-addiu $k1, $k1, 1
+addiu $k1, $k1, 0x1
 sw   $k1, 0($k0)
 j print_time
 
@@ -49,12 +49,13 @@ li $k0, 0x00000001
 bne $k0, $k1, done
 #if we get here, need to send time to uart/fifo
 #for now, send a byte (no fifo implemented yet)
-li $k0, 0x100000b4
-lw $k1, 0($k0)
-li $k0, 0x000000f0
-or $k1, $k1, $k0
-srl $k1, $k1, 4
+#li $k0, 0x100000b4
+#lw $k1, 0($k0)
+#li $k0, 0x000000f0
+#or $k1, $k1, $k0
+#srl $k1, $k1, 4
 li $k0, 0x100000b8
+li $k1, 0x51 #letter 
 sw $k1, 0($k0)
 j send_byte
 
@@ -66,7 +67,8 @@ li $k0, 0x100000d0  #inIdx adr
 lw $k1, 0($k0)      #load inIdx to k1
 li $k0, 0x100000d8  #buffer adr
 addu $k0, $k1, $k0  #add inIdx to buffer addr
-li $k1, 0x50 #letter P
+li $k1, 0x100000b0 
+lw $k1, 0($k1)
 sb $k1, 0($k0)
 li $k0, 0x100000d0  #inIdx adr
 lw $k1, 0($k0)      #load inIdx to k1
@@ -94,6 +96,7 @@ li $k1, 0x100000d4
 lw $k1, 0($k1) #outIdx
 beq $k1, $k0, done #if indexes are equal, jump to done
 li $k0, 0x100000d4 #outIdx
+lw $k0, 0($k0)
 li $k1, 0x100000d8 #buffer
 add $k1, $k1, $k0
 lb $k0, 0($k1)
