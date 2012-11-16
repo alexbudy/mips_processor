@@ -23,22 +23,21 @@ andi $k1, $k1, 0x7fff
 mtc0 $k1, $13
 
 mfc0 $k1, $11 #COMPARE
-li   $k0, 0xf00 #
+li   $k0, 0x1f00 #
 #li   $k0, 0x02faf080 #50_000_000
 addu  $k0, $k0, $k1
 mtc0 $k0, $11
 li   $k0, 0x1f0000b0 #load seconds passed
 lw   $k1, 0($k0)
-addiu $k1, $k1, 0x1
+addiu $k1, $k1, 1
 sw   $k1, 0($k0)
 li   $k0, 0x3c  #check if seconds is 60
 bne  $k0, $k1, print_time #go to print time if seconds < 60
-addu $k1, $0, $0
 li   $k0, 0x1f0000b0 
-sw   $k1, 0($k0)
+sw   $0, 0($k0)
 li   $k0, 0x1f0000b4
 lw   $k1, 0($k0)
-addiu $k1, $k1, 0x1
+addiu $k1, $k1, 1
 sw   $k1, 0($k0)
 j print_time
 
@@ -49,17 +48,63 @@ li $k0, 0x00000001
 bne $k0, $k1, done
 #if we get here, need to send time to uart/fifo
 #for now, send a byte (no fifo implemented yet)
-#li $k0, 0x1f0000b4
-#lw $k1, 0($k0)
-#li $k0, 0x000000f0
-#or $k1, $k1, $k0
-#srl $k1, $k1, 4
-li $k0, 0x1f0000b8
-li $k1, 0x51 #letter 
-sw $k1, 0($k0)
-j send_byte
 
-back:
+li $k0, 0x1f0000b4
+lw $k0, 0 ($k0)
+li $k1, 0x1f0000a0
+sw $k0, 0 ($k1)
+sw $0, 4($k1)
+dec_loop_m:
+li $k1, 0x1f0000a0
+lw $k0, 0($k1)
+addiu $k0, $k0, -10
+bltz $k0, end_dec_loop_m
+sw $k0, 0($k1) 
+lw $k0, 4($k1)
+addu $k0, $k0, 1
+sw $k0, 4($k1)
+j dec_loop_m
+end_dec_loop_m:
+lw $k0, 4($k1)
+addiu $k0, $k0, 30 #converts to ascii
+li $k1, 0x1f0000b8
+sw $k0, 0($k1)
+jal send_byte
+li $k1, 0x1f0000a0
+lw $k0, 0($k1)
+addiu $k0, $k0, 30 #converts to ascii
+li $k1, 0x1f0000b8
+sw $k0, 0($k1)
+jal send_byte
+
+li $k0, 0x1f0000b0
+lw $k0, 0 ($k0)
+li $k1, 0x1f0000a0
+sw $k0, 0 ($k1)
+sw $0, 4($k1)
+dec_loop:
+li $k1, 0x1f0000a0
+lw $k0, 0($k1)
+addiu $k0, $k0, -10
+bltz $k0, end_dec_loop
+sw $k0, 0($k1) 
+lw $k0, 4($k1)
+addiu $k0, $k0, 1
+sw $k0, 4($k1)
+j dec_loop
+end_dec_loop:
+lw $k0, 4($k1)
+addiu $k0, $k0, 30 #converts to ascii
+li $k1, 0x1f0000b8
+sw $k0, 0($k1)
+jal send_byte
+li $k1, 0x1f0000a0
+lw $k0, 0($k1)
+addiu $k0, $k0, 30 #converts to ascii
+li $k1, 0x1f0000b8
+sw $k0, 0($k1)
+jal send_byte
+
 j UART_TX #jump to UART_TX, which will attempt to send a byte or jump to done if cant
 
 send_byte: #send the byte stored at $k1
@@ -67,7 +112,7 @@ li $k0, 0x1f0000d0  #inIdx adr
 lw $k1, 0($k0)      #load inIdx to k1
 li $k0, 0x1f0000d8  #buffer adr
 addu $k0, $k1, $k0  #add inIdx to buffer addr
-li $k1, 0x1f0000b0 
+li $k1, 0x1f0000b8 
 lw $k1, 0($k1)
 sb $k1, 0($k0)
 li $k0, 0x1f0000d0  #inIdx adr
@@ -75,10 +120,11 @@ lw $k1, 0($k0)      #load inIdx to k1
 addiu $k1, $k1, 1 #incremenent inIdx
 sw $k1, 0($k0)   #store back
 li $k0, 0x14 #20
-bne $k0, $k1, back 
+bne $k0, $k1, xyz 
 li $k0, 0x1f0000d0
 sw $0, 0($k0)
-j back
+xyz:
+jr $ra
 
 
 UART_TX:

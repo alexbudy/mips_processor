@@ -1,12 +1,13 @@
-#define COUNT 0x10000010
-#define STATE (*((volatile unsigned int*)0x100000c0))
+#define COUNT 0x1f000010
+#define STATE (*((volatile unsigned int*)0x1f0000c0))
 
 int main(){
-asm("li $t0, 0x100000b0");  //seconds
-asm("li $t1, 0x100000b4");  //minutes
-asm("li $t2, 0x100000c4");  //rtc
-asm("li $t4, 0x100000d0");  //inIdx
-asm("li $t5, 0x100000d4");  //outIdx
+/*
+asm("li $t0, 0x1f0000b0");  //seconds
+asm("li $t1, 0x1f0000b4");  //minutes
+asm("li $t2, 0x1f0000c4");  //rtc
+asm("li $t4, 0x1f0000d0");  //inIdx
+asm("li $t5, 0x1f0000d4");  //outIdx
 
 asm("sw $0, 0($t0)");
 asm("sw $0, 0($t1)");
@@ -21,7 +22,10 @@ asm("mtc0 $t5, $11");
 
 asm("li $k0, 0xf80f");
 asm("mtc0 $k0, $12");
-
+*/
+asm("li $k0, 0x50");
+asm("li $k1, 0x80000008");
+asm("sw $k0, 0($k1)");
 //int tstart, tend;
 //register int a;
 //static volatile int b, *address;

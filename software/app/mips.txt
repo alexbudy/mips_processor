@@ -4,36 +4,36 @@ app.elf:     file format elf32-bigmips
 
 Disassembly of section .text:
 
-10000d00 <_start>:
-10000d00:	3c1d1000 	lui	sp,0x1000
-10000d04:	0c000343 	jal	10000d0c <main>
-10000d08:	37bd0d00 	ori	sp,sp,0xd00
+30001000 <_start>:
+30001000:	3c1d1000 	lui	sp,0x1000
+30001004:	0c000403 	jal	3000100c <main>
+30001008:	37bd1000 	ori	sp,sp,0x1000
 
-10000d0c <main>:
-10000d0c:	27bdffe8 	addiu	sp,sp,-24
-10000d10:	afa00010 	sw	zero,16(sp)
-10000d14:	3c081000 	lui	t0,0x1000
-10000d18:	350800b0 	ori	t0,t0,0xb0
-10000d1c:	3c091000 	lui	t1,0x1000
-10000d20:	352900b4 	ori	t1,t1,0xb4
-10000d24:	3c0a1000 	lui	t2,0x1000
-10000d28:	354a00c4 	ori	t2,t2,0xc4
-10000d2c:	3c0c1000 	lui	t4,0x1000
-10000d30:	358c00d0 	ori	t4,t4,0xd0
-10000d34:	3c0d1000 	lui	t5,0x1000
-10000d38:	35ad00d4 	ori	t5,t5,0xd4
-10000d3c:	ad000000 	sw	zero,0(t0)
-10000d40:	ad200000 	sw	zero,0(t1)
-10000d44:	ad400000 	sw	zero,0(t2)
-10000d48:	ad6e0000 	sw	t6,0(t3)
-10000d4c:	ad800000 	sw	zero,0(t4)
-10000d50:	ada00000 	sw	zero,0(t5)
-10000d54:	240dffff 	li	t5,-1
-10000d58:	408d5800 	mtc0	t5,$11
-10000d5c:	341af80f 	li	k0,0xf80f
-10000d60:	409a6000 	mtc0	k0,c0_sr
-10000d64:	08000359 	j	10000d64 <main+0x58>
-10000d68:	00000000 	nop
+3000100c <main>:
+3000100c:	27bdffe8 	addiu	sp,sp,-24
+30001010:	afa00010 	sw	zero,16(sp)
+30001014:	3c081f00 	lui	t0,0x1f00
+30001018:	350800b0 	ori	t0,t0,0xb0
+3000101c:	3c091f00 	lui	t1,0x1f00
+30001020:	352900b4 	ori	t1,t1,0xb4
+30001024:	3c0a1f00 	lui	t2,0x1f00
+30001028:	354a00c4 	ori	t2,t2,0xc4
+3000102c:	3c0c1f00 	lui	t4,0x1f00
+30001030:	358c00d0 	ori	t4,t4,0xd0
+30001034:	3c0d1f00 	lui	t5,0x1f00
+30001038:	35ad00d4 	ori	t5,t5,0xd4
+3000103c:	ad000000 	sw	zero,0(t0)
+30001040:	ad200000 	sw	zero,0(t1)
+30001044:	ad400000 	sw	zero,0(t2)
+30001048:	ad6e0000 	sw	t6,0(t3)
+3000104c:	ad800000 	sw	zero,0(t4)
+30001050:	ada00000 	sw	zero,0(t5)
+30001054:	240dffff 	li	t5,-1
+30001058:	408d5800 	mtc0	t5,$11
+3000105c:	341af80f 	li	k0,0xf80f
+30001060:	409a6000 	mtc0	k0,c0_sr
+30001064:	08000419 	j	30001064 <main+0x58>
+30001068:	00000000 	nop
 
 Disassembly of section .reginfo:
 
@@ -44,8 +44,7 @@ Disassembly of section .reginfo:
 Disassembly of section .pdr:
 
 00000000 <.pdr>:
-   0:	10000d0c 	b	3434 <_start-0xfffd8cc>
-   4:	00000000 	nop
+   0:	3000100c 	andi	zero,zero,0x100c
 	...
   14:	00000018 	mult	zero,zero
   18:	0000001d 	0x1d
