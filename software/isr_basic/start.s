@@ -22,6 +22,8 @@ andi $k1, $k0, 0x0800
 bne  $k1, $0, UART_TX
 andi $k1, $k0, 0x4000
 bne  $k1, $0, RTC_ISR
+andi $k1, $k0, 0x0400
+bne  $k1, $0, UART_RX
 
 j done
 
@@ -186,30 +188,43 @@ li $k0, 0x1f0000d4
 sw $0, 0($k0)
 j done
 
-UARTRX:
-li $k1, 0x8000000c //DataOut
-lw $k0, 0($k1)
-li $k1, 0x65
+UART_RX:
+mfc0 $k1, $13 #turn off cause bit
+andi $k1, $k1, 0xfbff
+mtc0 $k1, $13
+
+li $k1, 0x8000000c #DataOut
+lw $k1, 0($k1)
+
+#top:
+#li $k0, 0x80000000
+#lw $k0, 0($k0)
+#andi $k0, $k0, 0x1
+#beqz $k0, top
+#li $k0, 0x80000008
+#sw $k1, 0($k0) 
+
+li $k0, 0x65
 bne $k1, $k0, not_e
-li $k1, 0x100000c8
-li $k0, 0x00000001
-sb $k0, 0($k1)
+li $k1, 0x1f0000c8
+li $k0, 0x1
+sw $k0, 0($k1)
 j done
 
 not_e:
-li $k1, 0x8000000c
-lw $k0, 0($k1)
-li $k1, 0x64
-bne $k1 $k0 not_d
-li $k1, 0x100000c8
-sb $0, 0($k1)
+#li $k1, 0x8000000c
+#lw $k0, 0($k1)
+li $k0, 0x64
+bne $k1, $k0, not_d
+li $k1, 0x1f0000c8
+sw $0, 0($k1)
 j done
 
 not_d:
-li $k1, 0x8000000c
-lw $k0, 0($k1)
-li $k1, 0x100000c0
-sw $k0, 0($k1)
+#li $k1, 0x8000000c
+#lw $k0, 0($k1)
+li $k0, 0x1f0000c0
+sw $k1, 0($k0)
 j done
 
 RTC_ISR:

@@ -32,7 +32,7 @@ asm("mtc0 $t1, $11");
 //asm("addiu $t5, $0, 0xffff");
 //asm("mtc0 $t5, $11");
 
-asm("li $t0, 0x8801"); //timer, tx, and global
+asm("li $t0, 0x8c01"); //timer, tx, rx and global
 asm("mtc0 $t0, $12");
 
 //asm("li $k0, 0x50");
