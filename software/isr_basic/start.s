@@ -3,6 +3,15 @@
 
 _start:
 
+#top:
+#li $k0, 0x80000000
+#lw $k0, 0($k0)
+#andi $k0, $k0, 0x1
+#beqz $k0, top
+#li $k0, 0x80000008
+#li $k1, 0x63
+#sw $k1, 0($k0) 
+
 mfc0 $k0, $13 #CAUSE
 mfc0 $k1, $12 #STATUS
 andi $k1, 0xfc00
@@ -13,18 +22,23 @@ andi $k1, $k0, 0x0800
 bne  $k1, $0, UART_TX
 andi $k1, $k0, 0x4000
 bne  $k1, $0, RTC_ISR
+
 j done
 
 
-
 timer_ISR:
+
 mfc0 $k1, $13 #turn off cause bit
 andi $k1, $k1, 0x7fff
 mtc0 $k1, $13
 
+#li $k0, 0xdeadcccc
+#li $k1, 0x1f010000
+#sw $k0, 0($k1)
+
 mfc0 $k1, $11 #COMPARE
-li   $k0, 0x1f00 #
-#li   $k0, 0x02faf080 #50_000_000
+#li   $k0, 0x2f00 #
+li   $k0, 0x02faf080 #50_000_000
 addu  $k0, $k0, $k1
 mtc0 $k0, $11
 li   $k0, 0x1f0000b0 #load seconds passed
@@ -47,12 +61,11 @@ lw $k1, 0($k0)
 li $k0, 0x00000001
 bne $k0, $k1, done
 #if we get here, need to send time to uart/fifo
-#for now, send a byte (no fifo implemented yet)
 
 li $k0, 0x1f0000b4
 lw $k0, 0 ($k0)
-li $k1, 0x1f0000a0
-sw $k0, 0 ($k1)
+li $k1, 0x1f0000a0 
+sw $k0, 0 ($k1) #puts minutes into ls digit
 sw $0, 4($k1)
 dec_loop_m:
 li $k1, 0x1f0000a0
@@ -66,14 +79,19 @@ sw $k0, 4($k1)
 j dec_loop_m
 end_dec_loop_m:
 lw $k0, 4($k1)
-addiu $k0, $k0, 30 #converts to ascii
+addiu $k0, $k0, 0x30 #converts to ascii
 li $k1, 0x1f0000b8
 sw $k0, 0($k1)
 jal send_byte
 li $k1, 0x1f0000a0
 lw $k0, 0($k1)
-addiu $k0, $k0, 30 #converts to ascii
+addiu $k0, $k0, 0x30 #converts to ascii
 li $k1, 0x1f0000b8
+sw $k0, 0($k1)
+jal send_byte
+
+li $k1, 0x1f0000b8
+li $k0, 0x3a #':'
 sw $k0, 0($k1)
 jal send_byte
 
@@ -94,14 +112,24 @@ sw $k0, 4($k1)
 j dec_loop
 end_dec_loop:
 lw $k0, 4($k1)
-addiu $k0, $k0, 30 #converts to ascii
+addiu $k0, $k0, 0x30 #converts to ascii
 li $k1, 0x1f0000b8
 sw $k0, 0($k1)
 jal send_byte
 li $k1, 0x1f0000a0
 lw $k0, 0($k1)
-addiu $k0, $k0, 30 #converts to ascii
+addiu $k0, $k0, 0x30 #converts to ascii
 li $k1, 0x1f0000b8
+sw $k0, 0($k1)
+jal send_byte
+
+li $k1, 0x1f0000b8
+li $k0, 0xd #carriage return
+sw $k0, 0($k1)
+jal send_byte
+
+li $k1, 0x1f0000b8
+li $k0, 0xa #newline
 sw $k0, 0($k1)
 jal send_byte
 

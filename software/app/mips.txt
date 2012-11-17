@@ -5,9 +5,9 @@ app.elf:     file format elf32-bigmips
 Disassembly of section .text:
 
 30001000 <_start>:
-30001000:	3c1d1000 	lui	sp,0x1000
+30001000:	3c1d3000 	lui	sp,0x3000
 30001004:	0c000403 	jal	3000100c <main>
-30001008:	37bd1000 	ori	sp,sp,0x1000
+30001008:	37bd3000 	ori	sp,sp,0x3000
 
 3000100c <main>:
 3000100c:	27bdffe8 	addiu	sp,sp,-24
@@ -22,18 +22,21 @@ Disassembly of section .text:
 30001030:	358c00d0 	ori	t4,t4,0xd0
 30001034:	3c0d1f00 	lui	t5,0x1f00
 30001038:	35ad00d4 	ori	t5,t5,0xd4
-3000103c:	ad000000 	sw	zero,0(t0)
-30001040:	ad200000 	sw	zero,0(t1)
-30001044:	ad400000 	sw	zero,0(t2)
-30001048:	ad6e0000 	sw	t6,0(t3)
-3000104c:	ad800000 	sw	zero,0(t4)
-30001050:	ada00000 	sw	zero,0(t5)
-30001054:	240dffff 	li	t5,-1
-30001058:	408d5800 	mtc0	t5,$11
-3000105c:	341af80f 	li	k0,0xf80f
-30001060:	409a6000 	mtc0	k0,c0_sr
-30001064:	08000419 	j	30001064 <main+0x58>
-30001068:	00000000 	nop
+3000103c:	240e0001 	li	t6,1
+30001040:	3c0b1f00 	lui	t3,0x1f00
+30001044:	356b00c8 	ori	t3,t3,0xc8
+30001048:	ad000000 	sw	zero,0(t0)
+3000104c:	ad200000 	sw	zero,0(t1)
+30001050:	ad400000 	sw	zero,0(t2)
+30001054:	ad6e0000 	sw	t6,0(t3)
+30001058:	ad800000 	sw	zero,0(t4)
+3000105c:	ada00000 	sw	zero,0(t5)
+30001060:	240dffff 	li	t5,-1
+30001064:	408d5800 	mtc0	t5,$11
+30001068:	341a8801 	li	k0,0x8801
+3000106c:	409a6000 	mtc0	k0,c0_sr
+30001070:	0800041c 	j	30001070 <main+0x64>
+30001074:	00000000 	nop
 
 Disassembly of section .reginfo:
 

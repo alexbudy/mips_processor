@@ -6,13 +6,13 @@
 
 int main(void)
 {
-    for ( ; ; )
-    {
-        while (!RECV_CTRL) ;
-        char byte = RECV_DATA;
+    //for ( ; ; )
+    //{
+       // while (!RECV_CTRL) ;
+        //char byte = RECV_DATA;
         while (!TRAN_CTRL) ;
-        TRAN_DATA = byte;
-    }
+        TRAN_DATA = 'c';
+    //}
 
     return 0;
 }
