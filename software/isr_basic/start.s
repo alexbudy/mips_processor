@@ -43,6 +43,10 @@ mfc0 $k1, $11 #COMPARE
 li   $k0, 0x02faf080 #50_000_000
 addu  $k0, $k0, $k1
 mtc0 $k0, $11
+li   $k0, 0x1f0000bc #load total seconds passed
+lw   $k1, 0 ($k0)
+addiu $k1, $k1, 1
+sw $k1, 0($k0) #add to total seconds
 li   $k0, 0x1f0000b0 #load seconds passed
 lw   $k1, 0($k0)
 addiu $k1, $k1, 1
@@ -196,14 +200,6 @@ mtc0 $k1, $13
 li $k1, 0x8000000c #DataOut
 lw $k1, 0($k1)
 
-#top:
-#li $k0, 0x80000000
-#lw $k0, 0($k0)
-#andi $k0, $k0, 0x1
-#beqz $k0, top
-#li $k0, 0x80000008
-#sw $k1, 0($k0) 
-
 li $k0, 0x65
 bne $k1, $k0, not_e
 li $k1, 0x1f0000c8
@@ -212,8 +208,6 @@ sw $k0, 0($k1)
 j done
 
 not_e:
-#li $k1, 0x8000000c
-#lw $k0, 0($k1)
 li $k0, 0x64
 bne $k1, $k0, not_d
 li $k1, 0x1f0000c8
@@ -221,8 +215,6 @@ sw $0, 0($k1)
 j done
 
 not_d:
-#li $k1, 0x8000000c
-#lw $k0, 0($k1)
 li $k0, 0x1f0000c0
 sw $k1, 0($k0)
 j done

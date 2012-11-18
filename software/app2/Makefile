@@ -1,4 +1,3 @@
 TARGET := app
-TARGET := r100M
 
 include ../Makefile.llvm.in
