@@ -2,6 +2,6 @@
 .global     _start
 
 _start:
-    li      $sp, 0x10005000
+    li      $sp, 0x10007000
     jal     main
 	

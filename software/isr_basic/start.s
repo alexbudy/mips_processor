@@ -14,7 +14,7 @@ _start:
 
 mfc0 $k0, $13 #CAUSE
 mfc0 $k1, $12 #STATUS
-andi $k1, 0xfc00
+andi $k1, $k1, 0xfc00
 and  $k0, $k0, $k1
 andi $k1, $k0, 0x8000
 bne  $k1, $0, timer_ISR

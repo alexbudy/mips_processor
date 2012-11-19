@@ -49,15 +49,14 @@ while(1)  {
 			//initial time
 			//asm("li $t4, 0x1f0000bc");
 			//asm("lw $t5, 0($t4)"); //total seconds start
-			asm("li $t0, 0x8c00"); //timer, tx, rx and global
-			asm("mtc0 $t0, $12");
+			asm("li $t0, 0x1f0000c8"); //timer, tx, rx and global
+			asm("sw $0, 0($t0)");
 			r100M();
-			asm("nop");
-			asm("nop");
-			asm("nop");
-			asm("nop");
-			asm("li $t0, 0x8c01"); //timer, tx, rx and global
-			asm("mtc0 $t0, $12");
+			asm("li $t0, 0x1f0000c8"); //timer, tx, rx and global
+			asm("li $t1, 0x1"); //timer, tx, rx and global
+			asm("sw $t1, 0($t0)");
+			//asm("li $t0, 0x8c01"); //timer, tx, rx and global
+			//asm("mtc0 $t0, $12");
 			asm("nop");
 			asm("nop");
 			asm("nop");
@@ -109,39 +108,50 @@ while(1)  {
 
 void r100M() {
 		asm("add $t7, $0, $0");
-		//asm("lui  $t8, 0x05f5"); //100M
-		//asm("ori $t8, $t8, 0xe100");
-		asm("li $t8, 0x05f5e100");
+		asm("lui  $t8, 0x05f5"); //100M
+		asm("ori $t8, $t8, 0xe100");
+		//asm("li $t8, 0x05f5e100");
 		asm("loop:");
 		//send_time('a');
-		asm("addi $t7, $t7, 0x1");
+		asm("addiu $t7, $t7, 0x1");
 		asm("bne $t7, $t8, loop");
+		asm("nop");
+		//asm("addiu $t6, $t6, 0x1");
 }
 
 // m:ss = t2:t4 t5
 void send_time(char c) {
-		asm("li $t0, 0x8c00"); //timer, tx, rx and global
-		asm("mtc0 $t0, $12");
+		asm("li $t5, 0x0"); //timer, tx, rx and global
+		asm("mtc0 $t5, $12");
+		asm("nop");
 		send_byte(c);
-		asm("li $t0, 0x8c01"); //timer, tx, rx and global
-		asm("mtc0 $t0, $12");
+		asm("li $t5, 0x8c01"); //timer, tx, rx and global
+		asm("mtc0 $t5, $12");
+		asm("nop");
 }
 
 void send_byte(char b) {
 		asm("li $t0, 0x1f0000d0");  //inIdx adr
 		asm("lw $t1, 0($t0)");     //load inIdx to k1
+		asm("nop");
 		asm("li $t0, 0x1f0000d8"); //buffer adr
 		asm("addu $t0, $t1, $t0");  //add inIdx to buffer addr
 		asm("sb $a0, 0($t0)"); 
+		asm("nop");
 		asm("li $t0, 0x1f0000d0 "); //inIdx adr
 		asm("lw $t1, 0($t0)");      //load inIdx to k1
+		asm("nop");
 		asm("addiu $t1, $t1, 1");//incremenent inIdx
 		asm("sw $t1, 0($t0)");  //store back
+		asm("nop");
 		asm("li $t0, 0x14 "); //20
 		asm("bne $t0, $t1, xyz");
+		asm("nop");
 		asm("li $t0, 0x1f0000d0");
 		asm("sw $0, 0($t0)");
+		asm("nop");
 		asm("xyz:");
-		asm("jr $ra");
+		asm("nop");
+		//asm("jr $ra");
 }
 
