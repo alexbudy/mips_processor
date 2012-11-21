@@ -70,7 +70,7 @@ print_time:
 li $k0, 0x1f0000c8 #address for print bit
 lw $k1, 0($k0)
 li $k0, 0x00000001
-bne $k0, $k1, done
+bne $k0, $k1, UART_TX2
 #if we get here, need to send time to uart/fifo
 
 li $k0, 0x1f0000b4
