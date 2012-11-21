@@ -50,12 +50,13 @@ while(1)  {
 			//asm("li $t4, 0x1f0000bc");
 			//asm("lw $t5, 0($t4)"); //total seconds start
 			asm("li $t0, 0x1f0000c8"); //timer, tx, rx and global
-			asm("sw $0, 0($t0)");
+			asm("li $t1, 0x1"); //timer, tx, rx and global
+			//asm("sw $t1, 0($t0)");
 			r100M();
 			asm("li $t0, 0x1f0000c8"); //timer, tx, rx and global
 			asm("li $t1, 0x1"); //timer, tx, rx and global
-			asm("sw $t1, 0($t0)");
-			//asm("li $t0, 0x8c01"); //timer, tx, rx and global
+			//asm("sw $t1, 0($t0)");
+			asm("li $t0, 0x8c01"); //timer, tx, rx and global
 			//asm("mtc0 $t0, $12");
 			asm("nop");
 			asm("nop");
@@ -73,10 +74,15 @@ while(1)  {
 			//asm("li $t5, 0x1f0000a8");
 			//asm("sw $t6, 0($t5)"); 
 			send_time('r');
-			//clears the STATE var
+asm("li $t5, 0x8c01"); //timer, tx, rx and global
+		asm("mtc0 $t5, $12");
+		asm("nop");
+		
+	//clears the STATE var
 			asm("li $t0, 0x1f0000c0");
 			asm("sw $0, 0($t0)");
 	}
+	asm("add $t4, $t4, $t4");
 	/*
 	switch (STATE) {
 		case 0x72: //r
@@ -133,6 +139,7 @@ void send_time(char c) {
 void send_byte(char b) {
 		asm("li $t0, 0x1f0000d0");  //inIdx adr
 		asm("lw $t1, 0($t0)");     //load inIdx to k1
+		asm("andi $t1, $t1, 0xff");
 		asm("nop");
 		asm("li $t0, 0x1f0000d8"); //buffer adr
 		asm("addu $t0, $t1, $t0");  //add inIdx to buffer addr
@@ -140,12 +147,14 @@ void send_byte(char b) {
 		asm("nop");
 		asm("li $t0, 0x1f0000d0 "); //inIdx adr
 		asm("lw $t1, 0($t0)");      //load inIdx to k1
+		asm("andi $t1, $t1, 0xff");
 		asm("nop");
 		asm("addiu $t1, $t1, 1");//incremenent inIdx
 		asm("sw $t1, 0($t0)");  //store back
 		asm("nop");
-		asm("li $t0, 0x14 "); //20
-		asm("bne $t0, $t1, xyz");
+		asm("li $t0, 0xff "); //20
+		asm("slt $t1, $t0, $t1"); //k1 = (inIdx < 255)
+		asm("beq $t1, $0, xyz");
 		asm("nop");
 		asm("li $t0, 0x1f0000d0");
 		asm("sw $0, 0($t0)");
