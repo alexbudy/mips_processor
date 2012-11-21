@@ -79,18 +79,19 @@ assign a3_Z = a3_YZ;
 assign UARTout_Z = UARTout_YZ;
 assign RT_shifted_Z = RT_shifted_YZ;
 
+
 // ChipScope components:
- wire [35:0] chipscope_control;
- chipscope_icon icon(
- .CONTROL0(chipscope_control)
- ) /* synthesis syn_noprune=1 */;
- chipscope_ila ila(
- .CONTROL(chipscope_control),
- .CLK(clk),
- .DATA({rst, stall, PCout_X, inst_X, UARTwrite, InterruptHandled, InterruptRequest, prevDataInReady, DataInReady, prevDataOutValid, DataOutValid, wd, a3_Z, ALU_output, ALU_out_Y, A, B, RT, JBout}),
- .TRIG0( InterruptHandled)
-) /* synthesis syn_noprune=1 */;
-//
+// wire [35:0] chipscope_control;
+// chipscope_icon icon(
+// .CONTROL0(chipscope_control)
+// ) /* synthesis syn_noprune=1 */;
+// chipscope_ila ila(
+// .CONTROL(chipscope_control),
+// .CLK(clk),
+// .DATA({rst, stall, PCout_X, inst_X, UARTwrite, InterruptHandled, InterruptRequest, prevDataInReady, DataInReady, prevDataOutValid, DataOutValid, wd, a3_Z, ALU_output, ALU_out_Y, A, B, RT, JBout}),
+// .TRIG0( InterruptHandled)
+//) /* synthesis syn_noprune=1 */;
+
 
 RegFile RegFile(                            
             .clk(clk),                       
