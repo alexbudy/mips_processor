@@ -61,14 +61,8 @@ while(1)  {
 
 			r100M();
 			send_time('r');
-			//clears the STATE var
-			//asm("li $t0, 0x1f0000c0");
-			//asm("sw $0, 0($t0)");
 
 			STATE = 0x00;
-			//clears the STATE var
-			//asm("li $t0, 0x1f0000c0");
-			//asm("sw $0, 0($t0)");
 	}
 	else if (STATE == 0x52){
 			send_byte('R');
@@ -81,9 +75,6 @@ while(1)  {
 			diff = tend - tstart;
 
 			send_time('R');
-			//clears the STATE var
-			//asm("li $t0, 0x1f0000c0");
-			//asm("sw $0, 0($t0)");
 
 			STATE = 0x00;
 	
@@ -99,9 +90,6 @@ while(1)  {
 			diff = tend - tstart;
 
 			send_time('v');
-			//clears the STATE var
-			//asm("li $t0, 0x1f0000c0");
-			//asm("sw $0, 0($t0)");
 
 			STATE = 0x00;
 	
@@ -117,9 +105,6 @@ while(1)  {
 			diff = tend - tstart;
 
 			send_time('V');
-			//clears the STATE var
-			//asm("li $t0, 0x1f0000c0");
-			//asm("sw $0, 0($t0)");
 
 			STATE = 0x00;
 }
@@ -149,8 +134,6 @@ int mod(int a, int b) {
 
 void r100M() {
 		asm("add $t7, $0, $0");
-		//asm("lui  $t8, 0x05f5"); //100M
-		//asm("ori $t8, $t8, 0xe100");
 		asm("li $t8, 0x05f5e100");
 		asm("loop:");
 		asm("addiu $t7, $t7, 0x1");
@@ -174,40 +157,32 @@ void addone(){
 }
 void v100M() {
 		asm("add $t7, $0, $0");
-		asm("lui  $t8, 0x05f5"); //100M
-		asm("ori $t8, $t8, 0xe100");
-		//asm("li $t8, 0x05f5e100");
-		asm("lui $t6, 0x1f00");
-		asm("ori $t6, $t6, 0x00ac");
+		asm("li $t8, 0x05f5e100");
+		asm("li $t6, 0x1f0000ac");
+		asm("sw $0, 0($t6)");
 		asm("loopv:");
-		//send_time('a');
 		asm("lw $t7, 0($t6)");
 		asm("nop");
 		asm("addiu $t7, $t7, 0x1");
 		asm("sw $t7, 0($t6)");
 		asm("bne $t7, $t8, loopv");
 		asm("nop");
-		//asm("addiu $t6, $t6, 0x1");
 }
 void V100M() {
-		asm("add $t7, $0, $0");
-		asm("lui  $t8, 0x05f5"); //100M
-		asm("ori $t8, $t8, 0xe100");
-		//asm("li $t8, 0x05f5e100");
-		asm("lui $t6, 0x1f00");
-		asm("ori $t6, $t6, 0x00ac");
+		asm("li $t8, 0x05f5e100");
+		asm("li $t6, 0x1f0000ac");
+		asm("sw $0, 0($t6)");
+		asm("nop");
 		asm("loopV:");
 		asm("lw $t7, 0($t6)");
 		asm("nop");
-		//send_time('a');
 		addone();
 		asm("sw $t7, 0($t6)");
+		asm("nop");
 		asm("bne $t7, $t8, loopV");
 		asm("nop");
-		//asm("addiu $t6, $t6, 0x1");
 }
 
-// ss = t4 t5
 void send_time(char c) {
 		asm("li $t5, 0x0"); //timer, tx, rx and global
 		asm("mtc0 $t5, $12");
