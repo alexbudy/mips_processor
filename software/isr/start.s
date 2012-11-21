@@ -3,145 +3,255 @@
 
 _start:
 
-mfc0 $k0, $13 #CAUSE
+#top:
+#li $k0, 0x80000000
+#lw $k0, 0($k0)
+#andi $k0, $k0, 0x1
+#beqz $k0, top
+#li $k0, 0x80000008
+#li $k1, 0x63
+#sw $k1, 0($k0) 
+
+addiu	$sp,$sp,-4
+sw	$ra,0($sp)
+
 mfc0 $k1, $12 #STATUS
-andi $k1, 0xfc00
+andi $k0, $k1, 0xFFFe#added
+mtc0 $k0, $12#added
+mfc0 $k0, $13 #CAUSE
+andi $k1, $k1, 0xfc00
 and  $k0, $k0, $k1
 andi $k1, $k0, 0x8000
 bne  $k1, $0, timer_ISR
-nop
+andi $k1, $k0, 0x0800
+bne  $k1, $0, UART_TX
 andi $k1, $k0, 0x4000
 bne  $k1, $0, RTC_ISR
-nop
-andi $k1, $k0, 0x0400 
-bne  $k1, $0, UARTRX_ISR #UART receive interrupt, DataOutValid high, (read using the ISR)
-nop
-andi $k1, $k0, 0x0800 
-bne  $k1, $0, UARTTX_ISR #UART transmit interrupt, DataInReady high, (write into the FIFO, by app)
-nop
+andi $k1, $k0, 0x0400
+bne  $k1, $0, UART_RX
+
 j done
-nop
+
 
 timer_ISR:
-mfc0 $k1, $11 #COMPARE
-lui $k0, 0x02FA
-ori $k0, $k0, 0xF080
-addu $k0, $k0, $k1
-mtc0 $k0, $11 #COMPARE
-li $k0, 0x100000c8
-lw $k1, 0($k0)
-andi $k1, $k1, 1  #check the last bit
-bne $k1, $0, PRINT_TIME
-nop
-j done
-nop
 
-PRINT_TIME: #prints the time, called by timer_ISR
-jal send_time
-nop
+mfc0 $k1, $13 #turn off cause bit
+andi $k1, $k1, 0x7fff
+mtc0 $k1, $13
+
+#li $k0, 0xdeadcccc
+#li $k1, 0x1f010000
+#sw $k0, 0($k1)
+
+mfc0 $k1, $11 #COMPARE
+#li   $k0, 0x2f00 #
+li   $k0, 0x02faf080 #50_000_000
+addu  $k0, $k0, $k1
+mtc0 $k0, $11
+li   $k0, 0x1f0000bc #load total seconds passed
+lw   $k1, 0 ($k0)
+addiu $k1, $k1, 1
+sw $k1, 0($k0) #add to total seconds
+li   $k0, 0x1f0000b0 #load seconds passed
+lw   $k1, 0($k0)
+addiu $k1, $k1, 1
+sw   $k1, 0($k0)
+li   $k0, 0x3c  #check if seconds is 60
+bne  $k0, $k1, print_time #go to print time if seconds < 60
+li   $k0, 0x1f0000b0 
+sw   $0, 0($k0)
+li   $k0, 0x1f0000b4
+lw   $k1, 0($k0)
+addiu $k1, $k1, 1
+sw   $k1, 0($k0)
+j print_time
+
+print_time:
+li $k0, 0x1f0000c8 #address for print bit
+lw $k1, 0($k0)
+li $k0, 0x00000001
+bne $k0, $k1, UART_TX2
+#if we get here, need to send time to uart/fifo
+
+li $k0, 0x1f0000b4
+lw $k0, 0 ($k0)
+li $k1, 0x1f0000a0 
+sw $k0, 0 ($k1) #puts minutes into ls digit
+sw $0, 4($k1)
+dec_loop_m:
+li $k1, 0x1f0000a0
+lw $k0, 0($k1)
+addiu $k0, $k0, -10
+bltz $k0, end_dec_loop_m
+sw $k0, 0($k1) 
+lw $k0, 4($k1)
+addu $k0, $k0, 1
+sw $k0, 4($k1)
+j dec_loop_m
+end_dec_loop_m:
+lw $k0, 4($k1)
+addiu $k0, $k0, 0x30 #converts to ascii
+li $k1, 0x1f0000b8
+sw $k0, 0($k1)
+jal send_byte
+li $k1, 0x1f0000a0
+lw $k0, 0($k1)
+addiu $k0, $k0, 0x30 #converts to ascii
+li $k1, 0x1f0000b8
+sw $k0, 0($k1)
+jal send_byte
+
+li $k1, 0x1f0000b8
+li $k0, 0x3a #':'
+sw $k0, 0($k1)
+jal send_byte
+
+li $k0, 0x1f0000b0
+lw $k0, 0 ($k0)
+li $k1, 0x1f0000a0
+sw $k0, 0 ($k1)
+sw $0, 4($k1)
+dec_loop:
+li $k1, 0x1f0000a0
+lw $k0, 0($k1)
+addiu $k0, $k0, -10
+bltz $k0, end_dec_loop
+sw $k0, 0($k1) 
+lw $k0, 4($k1)
+addiu $k0, $k0, 1
+sw $k0, 4($k1)
+j dec_loop
+end_dec_loop:
+lw $k0, 4($k1)
+addiu $k0, $k0, 0x30 #converts to ascii
+li $k1, 0x1f0000b8
+sw $k0, 0($k1)
+jal send_byte
+li $k1, 0x1f0000a0
+lw $k0, 0($k1)
+addiu $k0, $k0, 0x30 #converts to ascii
+li $k1, 0x1f0000b8
+sw $k0, 0($k1)
+jal send_byte
+
+li $k1, 0x1f0000b8
+li $k0, 0xd #carriage return
+sw $k0, 0($k1)
+jal send_byte
+
+li $k1, 0x1f0000b8
+li $k0, 0xa #newline
+sw $k0, 0($k1)
+jal send_byte
+
+j UART_TX2 #jump to UART_TX, which will attempt to send a byte or jump to done if cant
+
+send_byte: #send the byte stored at $k1
+li $k0, 0x1f0000d0  #inIdx adr
+lw $k1, 0($k0)      #load inIdx to k1
+andi $k1, $k1, 0xff
+li $k0, 0x1f0000d8  #buffer adr
+addu $k0, $k1, $k0  #add inIdx to buffer addr
+li $k1, 0x1f0000b8 
+lw $k1, 0($k1)
+sb $k1, 0($k0)
+li $k0, 0x1f0000d0  #inIdx adr
+lw $k1, 0($k0)      #load inIdx to k1
+addiu $k1, $k1, 1 #incremenent inIdx
+sw $k1, 0($k0)   #store back
+li $k0, 0xff #255
+slt $k1, $k0, $k1 #k1 = (inIdx < 255)
+beq $k1, $0, xyz 
+li $k0, 0x1f0000d0
+sw $0, 0($k0)
+xyz:
+jr $ra
+
+
+UART_TX:
+mfc0 $k1, $13 #turn off cause bit
+andi $k1, $k1, 0xf7ff
+mtc0 $k1, $13
+
+UART_TX2:
+li $k1, 0x1f0000d0 #debugging load inIdx,outIdx
+lw $k1, 0($k1)
+li $k1, 0x1f0000d4 #debugging load inIdx,outIdx
+lw $k1, 0($k1)
+li $k0, 0x80000000
+lw $k1, 0($k0)
+andi $k1, $k1, 0x1
+beq  $k1, $0, done #if DataInReady is low, go to done
+li $k0, 0x1f0000d0
+lw $k0, 0($k0) #inIdx
+andi $k0, $k0, 0xff
+li $k1, 0x1f0000d4
+lw $k1, 0($k1) #outIdx
+andi $k1, $k1, 0xff
+beq $k1, $k0, done #if indexes are equal, jump to done
+li $k0, 0x1f0000d4 #outIdx
+lw $k0, 0($k0)
+andi $k0, $k0, 0xff
+li $k1, 0x1f0000d8 #buffer
+add $k1, $k1, $k0
+lb $k0, 0($k1)
+li $k1, 0x80000008
+sw $k0, 0($k1) #send byte over UART
+li $k0, 0x1f0000d4
+lw $k1, 0($k0) #load outIdx to incr
+andi $k1, $k1, 0xff
+addiu $k1, $k1, 1
+sw $k1, 0($k0) #store incremented outIdx
+li $k0, 0xff #buf size = 255
+slt $k1, $k0, $k1 #k1 = (outIdx < 255)
+beq $k1, $0, done 
+li $k0, 0x1f0000d4
+sw $0, 0($k0)
 j done
-nop
+
+UART_RX:
+mfc0 $k1, $13 #turn off cause bit
+andi $k1, $k1, 0xfbff
+mtc0 $k1, $13
+
+li $k1, 0x8000000c #DataOut
+lw $k1, 0($k1)
+
+li $k0, 0x65
+bne $k1, $k0, not_e
+li $k1, 0x1f0000c8
+li $k0, 0x1
+sw $k0, 0($k1)
+j done
+
+not_e:
+li $k0, 0x64
+bne $k1, $k0, not_d
+li $k1, 0x1f0000c8
+sw $0, 0($k1)
+j done
+
+not_d:
+li $k0, 0x1f0000c0
+sw $k1, 0($k0)
+j done
 
 RTC_ISR:
-lw $k0, 0x100000c4
-nop
-addi $k0, $k0, 1
-sw $k0, 0x100000c4
-mfc0 $k1, $13 #CAUSE - sample code is wrong!! (NOT status)
-andi $k1, $k1, !(1<<14) #disable timer cause
+li $k0, 0x1f0000c4
+lw $k1, 0($k0)
+addiu $k1, $k1, 1
+sw $k1, 0($k0)
+mfc0 $k1, $13 #turn off cause bit
+andi $k1, $k1, 0xbfff
 mtc0 $k1, $13
 j done
-nop
 
-UARTRX_ISR: #read from UART
-lw $k0, 0x8000000c
-li $k1, 0x65  #'e'
-beq $k1, $k0, SET_TIMER_PRINT
-nop
-li $k1, 0x64  #'d'
-beq $k1, $k0, UNSET_TIMER_PRINT
-nop
-lw $k0, 0x100000c0
-j done
-nop
-
-SET_TIMER_PRINT:
-li $k0, 0x00000001
-sw $k1, 0x100000c8 
-j done
-nop
-
-UNSET_TIMER_PRINT:
-li $k0, 0x00000000
-sw $k1, 0x100000c8 
-j done
-nop
-
-UARTTX_ISR:
-jal write_UART
-nop
-j done
-nop
-
-
-r100M:
-addi $t0, $0, 0
-lui $t1, 0x0098
-ori $t1, $t1, 0x9680
-loop:
-addi $t0, $t0, 1
-bne $t0, $t1, loop
-nop
-j done
-nop
- 
-v100M: 
-lw $t0, 0x1dd0
-nop
-addi $t0, $t0, 1
-sw $t0, 0x1dd0
-bne $t0, $t1, v100M
-nop
-j done
-nop
-
-R100M:
-addi $a0, $t0, 0
-jal addone
-nop
-addi $t0, $v0,0
-bne $t0, $t1, R100M
-nop
-j done
-nop
-
-V100M:
-jal loadaddone
-nop
-addi $t0, $v0, 0
-bne $t0, $t1, V100M
-nop
-j done
-nop
-
-loadaddone:
-lw $t0, 0x1dd0
-nop
-addi $t0, $t0, 1
-sw $t0, 0x1dd0
-bne $t0, $t1, loadaddone
-nop
-jr $ra
-nop
-
-addone:
-addi $v0, $t0, 1
-jr $ra
-nop
 
 done:
 mfc0 $k1, $12
-ori $k1, $k1, 1
+ori $k1, $k1, 0x1
 mfc0 $k0, $14
-jr $k0
+lw	$ra,0($sp)
+addiu	$sp,$sp,4
 mtc0 $k1, $12
+jr $k0
