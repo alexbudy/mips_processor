@@ -4,12 +4,16 @@
 
 void send_time(char c);
 void send_byte(char b);
-void r100M();
 int div(int a, int b);
 int mod(int a, int b);
 
 
 int diff;
+void r100M();
+void R100M();
+void v100M();
+void V100M();
+void addone();
 
 int main(){
 
@@ -47,24 +51,81 @@ int tstart, tend;
 
 while(1)  {
 	if (STATE == 0x72) {
-			//initial time
-			//asm("li $t4, 0x1f0000bc");
-			//asm("lw $t5, 0($t4)"); //total seconds start
-			
+			send_byte('r');
+			send_byte(0xd);
+			send_byte(0xa);
 			tstart = SECONDS;
 			r100M();
 			tend = SECONDS;
 			diff = tend - tstart;
+
+			r100M();
 			send_time('r');
-			
-		
 			//clears the STATE var
-			asm("li $t0, 0x1f0000c0");
-			asm("sw $0, 0($t0)");
+			//asm("li $t0, 0x1f0000c0");
+			//asm("sw $0, 0($t0)");
+
 			STATE = 0x00;
+			//clears the STATE var
+			//asm("li $t0, 0x1f0000c0");
+			//asm("sw $0, 0($t0)");
 	}
+	else if (STATE == 0x52){
+			send_byte('R');
+			send_byte(0xd);
+			send_byte(0xa);
+
+			tstart = SECONDS;
+			R100M();
+			tend = SECONDS;
+			diff = tend - tstart;
+
+			send_time('R');
+			//clears the STATE var
+			//asm("li $t0, 0x1f0000c0");
+			//asm("sw $0, 0($t0)");
+
+			STATE = 0x00;
+	
+}
+	else if (STATE == 0x76){
+			send_byte('v');
+			send_byte(0xd);
+			send_byte(0xa);
+
+			tstart = SECONDS;
+			v100M();
+			tend = SECONDS;
+			diff = tend - tstart;
+
+			send_time('v');
+			//clears the STATE var
+			//asm("li $t0, 0x1f0000c0");
+			//asm("sw $0, 0($t0)");
+
+			STATE = 0x00;
+	
+}
+	else if (STATE == 0x56){
+			send_byte('V');
+			send_byte(0xd);
+			send_byte(0xa);
+
+			tstart = SECONDS;
+			V100M();
+			tend = SECONDS;
+			diff = tend - tstart;
+
+			send_time('V');
+			//clears the STATE var
+			//asm("li $t0, 0x1f0000c0");
+			//asm("sw $0, 0($t0)");
+
+			STATE = 0x00;
+}
 	asm("add $t4, $t4, $t4");
 };
+
 	return 0;
 }
 
@@ -95,6 +156,55 @@ void r100M() {
 		asm("addiu $t7, $t7, 0x1");
 		asm("bne $t7, $t8, loop");
 		asm("nop");
+}
+void R100M() {
+		asm("add $t7, $0, $0");
+		asm("lui  $t8, 0x05f5"); //100M
+		asm("ori $t8, $t8, 0xe100");
+		//asm("li $t8, 0x05f5e100");
+		asm("loopR:");
+		//send_time('a');
+		addone();
+		asm("bne $t7, $t8, loopR");
+		asm("nop");
+		//asm("addiu $t6, $t6, 0x1");
+}
+void addone(){
+		asm("addiu $t7, $t7, 0x1");
+}
+void v100M() {
+		asm("add $t7, $0, $0");
+		asm("lui  $t8, 0x05f5"); //100M
+		asm("ori $t8, $t8, 0xe100");
+		//asm("li $t8, 0x05f5e100");
+		asm("lui $t6, 0x1f00");
+		asm("ori $t6, $t6, 0x00ac");
+		asm("loopv:");
+		//send_time('a');
+		asm("lw $t7, 0($t6)");
+		asm("nop");
+		asm("addiu $t7, $t7, 0x1");
+		asm("sw $t7, 0($t6)");
+		asm("bne $t7, $t8, loopv");
+		asm("nop");
+		//asm("addiu $t6, $t6, 0x1");
+}
+void V100M() {
+		asm("add $t7, $0, $0");
+		asm("lui  $t8, 0x05f5"); //100M
+		asm("ori $t8, $t8, 0xe100");
+		//asm("li $t8, 0x05f5e100");
+		asm("lui $t6, 0x1f00");
+		asm("ori $t6, $t6, 0x00ac");
+		asm("loopV:");
+		asm("lw $t7, 0($t6)");
+		asm("nop");
+		//send_time('a');
+		addone();
+		asm("sw $t7, 0($t6)");
+		asm("bne $t7, $t8, loopV");
+		asm("nop");
+		//asm("addiu $t6, $t6, 0x1");
 }
 
 // ss = t4 t5

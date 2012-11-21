@@ -12,6 +12,7 @@ buffer:          0x1f0000d8
 dec seconds lsb: 	 0x1f0000a0
 dec seconds msb: 	 0x1f0000a4
 seconds diff:		 0x1f0000a8
+count:			 0x1f0000ac
 
 start program: 0x10001000
 
