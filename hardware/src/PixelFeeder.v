@@ -23,7 +23,6 @@ module PixelFeeder( //System:
     localparam FETCH = 1'b1;
 
     reg  [31:0] ignore_count;
-	assign af_wr_en = (State == FETCH);
     
     /**************************************************************************
     * YOUR CODE HERE: Write logic to keep the FIFO as full as possible.
@@ -32,6 +31,9 @@ reg[9:0] x, y;
 reg[1:0] frame;
 reg State, nextState;
 reg[31:0] fifocount;
+	assign af_wr_en = (State == FETCH);
+	wire feeder_full, feeder_empty;
+
 	always @(*) begin
 		if (fifocount < 7000 & ~af_full & ~feeder_full) 
 			nextState = FETCH;
@@ -46,7 +48,6 @@ reg[31:0] fifocount;
 			frame <= 2'b01;
 			fifocount <= 32'b0;
 			State <= IDLE;
-			af_wr_enreg <= 1'b0;
 		end
 		else begin
 			State <= nextState;
@@ -83,7 +84,6 @@ reg[31:0] fifocount;
     // FIFO to buffer the reads with a write width of 128 and read width of 32. We try to fetch blocks
     // until the FIFO is full.
     wire [31:0] feeder_dout;
-	wire feeder_full, feeder_empty;
 
     pixel_fifo feeder_fifo(
     	.rst(rst),
