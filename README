@@ -14,7 +14,11 @@ dec seconds msb: 	 0x1f0000a4
 seconds diff:		 0x1f0000a8
 count:			 0x1f0000ac
 
-start program: 0x10001000
+start program: 0x10005000
+
+CP4:
+Frame 1: 0x1040_0000
+Frame 2: 0x1080_0000
 
 spec broken down:
 isr resides in start.s (isr folder) 

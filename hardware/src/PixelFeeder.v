@@ -5,11 +5,11 @@ module PixelFeeder( //System:
                     input          clk50_g, // DVI Clock
                     input          rst,
                     //DDR2 FIFOS:
-                    input          rdf_valid,
-                    input          af_full,
+                    input          rdf_valid,  //goes into the pixel_fifo, symbolizes rdf_dout being valid
+                    input          af_full,    //address fifo is full, cannot take more requests
                     input  [127:0] rdf_dout,
-                    output         rdf_rd_en,
-                    output         af_wr_en,
+                    output         rdf_rd_en,  //should always be high as pixel_fifo is spitting out pixels nonstop
+                    output         af_wr_en,   //high when fetching new pixels from mem, until af_full is low
                     output [30:0]  af_addr_din,
                     // DVI module:
                     output [23:0]  video,
@@ -27,15 +27,14 @@ module PixelFeeder( //System:
     /**************************************************************************
     * YOUR CODE HERE: Write logic to keep the FIFO as full as possible.
     **************************************************************************/
-reg[9:0] x, y;
-reg[1:0] frame;
-reg State, nextState;
-reg[31:0] fifocount;
-	assign af_wr_en = (State == FETCH);
+	reg[9:0] x, y;
+	reg[1:0] frame;
+	reg State, nextState;
+	reg[31:0] fifocount;
 	wire feeder_full, feeder_empty;
 
 	always @(*) begin
-		if (fifocount < 7000 & ~af_full & ~feeder_full) 
+		if (fifocount < 7000 & ~feeder_full & af_full) 
 			nextState = FETCH;
 		else
 			nextState = IDLE;
@@ -53,22 +52,28 @@ reg[31:0] fifocount;
 			State <= nextState;
 			if (State == FETCH)begin
 				fifocount <= fifocount + 8 -(video_ready & ignore_count == 0);
+
 				if (x < 792)
 					x <= x + 8;
 				else if (y < 599) begin
 					x <= 10'd0;
 					y <= y + 1;
 				end else begin
-					x <= 10'd0; //Want to change frame at this point
+					x <= 10'd0; //Want to change frame at this point, TODO
 					y <= 10'd0;
 				end
+
 			end else begin//IDLE state 
-				fifocount <= fifocount - (video_ready & ignore_count == 0);
+				if (fifocount > 0) fifocount <= fifocount - (video_ready & ignore_count == 0);
+				x <= x;
+				y <= y;
 			end
 		end
 	end
 
+	assign af_wr_en = (State == FETCH);
 	assign af_addr_din = {6'd0, 6'b000001,y,x[9:1]};
+
     /* We drop the first frame to allow the buffer to fill with data from
     * DDR2. This gives alignment of the frame. */
     always @(posedge cpu_clk_g) begin
@@ -98,6 +103,6 @@ reg[31:0] fifocount;
 
     assign video = feeder_dout[23:0];
     assign video_valid = 1'b1;
-	assign rdf_rd_en = 1'b1;
+	assign rdf_rd_en = !feeder_empty; //should be 1'b1?
 
 endmodule
