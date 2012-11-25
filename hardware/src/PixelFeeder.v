@@ -23,16 +23,17 @@ module PixelFeeder( //System:
     localparam FETCH = 1'b1;
 
     reg  [31:0] ignore_count;
+	assign af_wr_en = (State == FETCH);
     
     /**************************************************************************
     * YOUR CODE HERE: Write logic to keep the FIFO as full as possible.
     **************************************************************************/
 reg[9:0] x, y;
 reg[1:0] frame;
-reg State, nextState, af_wr_enreg;
+reg State, nextState;
 reg[31:0] fifocount;
 	always @(*) begin
-		if (fifocount < 7000)
+		if (fifocount < 7000 & ~af_full) 
 			nextState = FETCH;
 		else
 			nextState = IDLE;
@@ -50,8 +51,7 @@ reg[31:0] fifocount;
 		else begin
 			State <= nextState;
 			if (State == FETCH)begin
-				fifocount <= (af_full? fifocount: fifocount + 8) -(video_ready & ignore_count == 0);
-				af_wr_enreg <= ~af_full;
+				fifocount <= fifocount + 8 -(video_ready & ignore_count == 0);
 				if (x < 792)
 					x <= x + 8;
 				else if (y < 599) begin
@@ -62,7 +62,6 @@ reg[31:0] fifocount;
 					y <= 10'd0;
 				end
 			end else begin//IDLE state 
-				af_wr_enreg <= 1'b0;
 				fifocount <= fifocount - (video_ready & ignore_count == 0);
 			end
 		end
@@ -84,19 +83,19 @@ reg[31:0] fifocount;
     // FIFO to buffer the reads with a write width of 128 and read width of 32. We try to fetch blocks
     // until the FIFO is full.
     wire [31:0] feeder_dout;
+	wire feeder_full, feeder_empty;
 
     pixel_fifo feeder_fifo(
     	.rst(rst),
     	.wr_clk(cpu_clk_g),
     	.rd_clk(clk50_g),
-    	.din(rdf_dout),
-    	.wr_en(rdf_valid),
+    	.din(128'h0fff0fff0fff0fff0fff0fff0fff0fff), //rdf_dout
+    	.wr_en(!feeder_full),   						 //rdf_valid
     	.rd_en(video_ready & ignore_count == 0),
     	.dout(feeder_dout),
     	.full(feeder_full),
     	.empty(feeder_empty));
 
-	assign af_wr_en = af_wr_enreg;
     assign video = feeder_dout[23:0];
     assign video_valid = 1'b1;
 	assign rdf_rd_en = 1'b1;
