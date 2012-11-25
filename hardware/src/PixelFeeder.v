@@ -29,7 +29,7 @@ module PixelFeeder( //System:
     **************************************************************************/
 reg[9:0] x, y;
 reg[1:0] frame;
-reg State, nextState;
+reg State, nextState, af_wr_enreg;
 reg[31:0] fifocount;
 	always @(*) begin
 		if (fifocount < 7000)
@@ -43,15 +43,15 @@ reg[31:0] fifocount;
 			x <= 10'b0;
 			y <= 10'b0;
 			frame <= 2'b01;
-			fifocount <= 32'b0
+			fifocount <= 32'b0;
 			State <= IDLE;
+			af_wr_enreg <= 1'b0;
 		end
 		else begin
 			State <= nextState;
 			if (State == FETCH)begin
-				fifocount <= fifocount + 8 -(video_ready & ignore_count == 0);
-				rdf_rd_en <= 1'b1;
-			
+				fifocount <= (af_full? fifocount: fifocount + 8) -(video_ready & ignore_count == 0);
+				af_wr_enreg <= ~af_full;
 				if (x < 792)
 					x <= x + 8;
 				else if (y < 599) begin
@@ -61,11 +61,14 @@ reg[31:0] fifocount;
 					x <= 10'b0; //Want to change frame at this point
 					y <= 10'b0;
 				end
-			end else //IDLE state 
-			fifocount <= fifocount - (video_ready & ignore_count == 0);
+			end else begin//IDLE state 
+				af_wr_enreg <= 1'b0;
+				fifocount <= fifocount - (video_ready & ignore_count == 0);
+			end
+		end
 	end
 
-	assign af_addr_din = {8'b00010000, frame,y,x[9:1]};
+	assign af_addr_din = {6'd0, 6'b1,y,x[9:1]};
     /* We drop the first frame to allow the buffer to fill with data from
     * DDR2. This gives alignment of the frame. */
     always @(posedge cpu_clk_g) begin
@@ -93,7 +96,9 @@ reg[31:0] fifocount;
     	.full(feeder_full),
     	.empty(feeder_empty));
 
+	assign af_wr_en = af_wr_enreg;
     assign video = feeder_dout[23:0];
     assign video_valid = 1'b1;
+	assign rdf_rd_en = 1'b1;
 
 endmodule
