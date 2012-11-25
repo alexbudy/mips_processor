@@ -33,7 +33,7 @@ reg[1:0] frame;
 reg State, nextState;
 reg[31:0] fifocount;
 	always @(*) begin
-		if (fifocount < 7000 & ~af_full) 
+		if (fifocount < 7000 & ~af_full & ~feeder_full) 
 			nextState = FETCH;
 		else
 			nextState = IDLE;
@@ -89,8 +89,8 @@ reg[31:0] fifocount;
     	.rst(rst),
     	.wr_clk(cpu_clk_g),
     	.rd_clk(clk50_g),
-    	.din(128'h0fff0fff0fff0fff0fff0fff0fff0fff), //rdf_dout
-    	.wr_en(!feeder_full),   						 //rdf_valid
+    	.din(rdf_dout), //rdf_dout
+    	.wr_en(rdf_valid),   						 //rdf_valid
     	.rd_en(video_ready & ignore_count == 0),
     	.dout(feeder_dout),
     	.full(feeder_full),
