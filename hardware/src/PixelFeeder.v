@@ -58,8 +58,8 @@ reg[31:0] fifocount;
 					x <= 10'd0;
 					y <= y + 1;
 				end else begin
-					x <= 10'b0; //Want to change frame at this point
-					y <= 10'b0;
+					x <= 10'd0; //Want to change frame at this point
+					y <= 10'd0;
 				end
 			end else begin//IDLE state 
 				af_wr_enreg <= 1'b0;
@@ -68,7 +68,7 @@ reg[31:0] fifocount;
 		end
 	end
 
-	assign af_addr_din = {6'd0, 6'b1,y,x[9:1]};
+	assign af_addr_din = {6'd0, 6'b000001,y,x[9:1]};
     /* We drop the first frame to allow the buffer to fill with data from
     * DDR2. This gives alignment of the frame. */
     always @(posedge cpu_clk_g) begin
