@@ -62,20 +62,20 @@ module PixelFeeder( //System:
 		else begin
 			State <= nextState;
 			if (State == FETCH)begin
-				fifocount <= fifocount + 8 -(video_ready & ignore_count == 0);
+				fifocount <= (fifocount + 8 -(video_ready & ignore_count == 0));
 
 				if (x < 792)
-					x <= x + 8;
+					x <= x + 10'd8;
 				else if (y < 599) begin
 					x <= 10'd0;
-					y <= y + 1;
+					y <= y + 10'd1;
 				end else begin
 					x <= 10'd0; //Want to change frame at this point, TODO
 					y <= 10'd0;
 				end
 
 			end else begin//IDLE state 
-				if (fifocount > 0) fifocount <= fifocount - (video_ready & ignore_count == 0);
+				if (fifocount > 0) fifocount <= (fifocount - (video_ready & ignore_count == 0));
 				x <= x;
 				y <= y;
 			end
@@ -83,7 +83,7 @@ module PixelFeeder( //System:
 	end
 
 	assign af_wr_en = (State == FETCH);
-	assign af_addr_din = {6'd0, 6'b000001,y,x[9:1]};
+	assign af_addr_din = {6'b000000, 6'b000001,y,x[9:3],2'b00};
 
     /* We drop the first frame to allow the buffer to fill with data from
     * DDR2. This gives alignment of the frame. */
@@ -114,6 +114,6 @@ module PixelFeeder( //System:
 
     assign video = feeder_dout[23:0];
     assign video_valid = 1'b1;
-	assign rdf_rd_en = !feeder_empty; //should be 1'b1?
+	assign rdf_rd_en = 1'b1; //should be 1'b1?
 
 endmodule
