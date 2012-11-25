@@ -23,12 +23,49 @@ module PixelFeeder( //System:
     localparam FETCH = 1'b1;
 
     reg  [31:0] ignore_count;
-
+    
     /**************************************************************************
     * YOUR CODE HERE: Write logic to keep the FIFO as full as possible.
     **************************************************************************/
+reg[9:0] x, y;
+reg[1:0] frame;
+reg State, nextState;
+reg[31:0] fifocount;
+	always @(*) begin
+		if (fifocount < 7000)
+			nextState = FETCH;
+		else
+			nextState = IDLE;
+	end
+	
+	always @(posedge cpu_clk_g) begin
+		if(rst)begin
+			x <= 10'b0;
+			y <= 10'b0;
+			frame <= 2'b01;
+			fifocount <= 32'b0
+			State <= IDLE;
+		end
+		else begin
+			State <= nextState;
+			if (State == FETCH)begin
+				fifocount <= fifocount + 8 -(video_ready & ignore_count == 0);
+				rdf_rd_en <= 1'b1;
+			
+				if (x < 792)
+					x <= x + 8;
+				else if (y < 599) begin
+					x <= 10'd0;
+					y <= y + 1;
+				end else begin
+					x <= 10'b0; //Want to change frame at this point
+					y <= 10'b0;
+				end
+			end else //IDLE state 
+			fifocount <= fifocount - (video_ready & ignore_count == 0);
+	end
 
-
+	assign af_addr_din = {8'b00010000, frame,y,x[9:1]};
     /* We drop the first frame to allow the buffer to fill with data from
     * DDR2. This gives alignment of the frame. */
     always @(posedge cpu_clk_g) begin
@@ -39,6 +76,7 @@ module PixelFeeder( //System:
        else
             ignore_count <= ignore_count;
     end
+	
 
     // FIFO to buffer the reads with a write width of 128 and read width of 32. We try to fetch blocks
     // until the FIFO is full.
@@ -59,4 +97,3 @@ module PixelFeeder( //System:
     assign video_valid = 1'b1;
 
 endmodule
-
