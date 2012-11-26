@@ -34,7 +34,7 @@ module PixelFeeder( //System:
 	wire feeder_full, feeder_empty;
 
 	always @(*) begin
-		if (fifocount < 7000 & ~feeder_full & af_full) 
+		if (fifocount < 7000 & ~feeder_full) 
 			nextState = FETCH;
 		else
 			nextState = IDLE;
@@ -51,18 +51,21 @@ module PixelFeeder( //System:
 		else begin
 			State <= nextState;
 			if (State == FETCH)begin
-				fifocount <= (fifocount + 8 -(video_ready & ignore_count == 0));
 
-				if (x < 792)
-					x <= x + 10'd8;
-				else if (y < 599) begin
-					x <= 10'd0;
-					y <= y + 10'd1;
-				end else begin
-					x <= 10'd0; //Want to change frame at this point, TODO
-					y <= 10'd0;
+				if (~af_full) begin
+					fifocount <= (fifocount + 8 -(video_ready & ignore_count == 0));
+					if (x < 792)
+						x <= x + 10'd8;
+					else if (y < 599) begin
+						x <= 10'd0;
+						y <= y + 10'd1;
+					end else begin
+						x <= 10'd0; //Want to change frame at this point, TODO
+						y <= 10'd0;
+						if (frame == 2'b01) frame <= 2'b10;
+						else frame <= 2'b01;
+					end
 				end
-
 			end else begin//IDLE state 
 				if (fifocount > 0) fifocount <= (fifocount - (video_ready & ignore_count == 0));
 				x <= x;
@@ -72,7 +75,7 @@ module PixelFeeder( //System:
 	end
 
 	assign af_wr_en = (State == FETCH);
-	assign af_addr_din = {6'b000000, 6'b000001,y,x[9:3],2'b00};
+	assign af_addr_din = {6'b000000, 4'b0000, frame, y,x[9:3],2'b00};
 
     /* We drop the first frame to allow the buffer to fill with data from
     * DDR2. This gives alignment of the frame. */
