@@ -65,6 +65,8 @@ module PixelFeeder( //System:
 						if (frame == 2'b01) frame <= 2'b10;
 						else frame <= 2'b01;
 					end
+				end else begin 
+					if (fifocount > 0) fifocount <= (fifocount - (video_ready & ignore_count == 0));
 				end
 			end else begin//IDLE state 
 				if (fifocount > 0) fifocount <= (fifocount - (video_ready & ignore_count == 0));
