@@ -80,7 +80,5 @@ module FrameFiller(//system:
 	assign wdf_din   = {8'd0, color, 8'd0, color, 8'd0, color, 8'd0, color}
 	assign wdf_mask_din = 16'd0;
 	reg [18:0] offset;
-	assign offset = {y, x[9:3], 2'b00};
-	assign af_addr_din = FF_frame_base + offset; 
-
+	assign af_addr_din = {6'b000000, FF_frame_base[27:22], y, x[9:3], 2'b00};
 endmodule
