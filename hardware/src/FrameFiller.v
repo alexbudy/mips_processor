@@ -20,16 +20,65 @@ module FrameFiller(//system:
   );
 
    //Your code goes here. GL HF DD DS
+	localparam IDLE = 2'b00;
+	localparam PUSH = 2'b01;
+	localparam START = 2'b10;
 
+	reg[9:0] x, y;
 
-  // Remove these when you implement the frame filler:
+	reg [1:0] State, nextState;
+	reg overflow;
+	
+	always @(*) begin
+		if (valid & !af_full & !wdf_full) nextState = PUSH; 
+		else if (af_full | wdf_full) nextState = (State == START) ? START : IDLE;
+		else if (!af_full & !wdf_full) nextState = (State == IDLE) ? PUSH : State; 
+		else nextState = State;
+	end	
 
-  assign wdf_wr_en = 1'b0;
-  assign af_wr_en  = 1'b0;
-  assign ready     = 1'b1;
+	always @(posedge clk) begin
+		if (rst) begin
+			x <= 10'b0;			
+			y <= 10'b0;			
+			State <= START;
+			overflow <= 0;
+		end
+		else begin
+			State <= overflow? START:nextState;
+			if (State == PUSH) begin
+				if (x < 792) begin
+					 x <= x + 10'd8;
+					overflow <= 0;
+				end
+				else if (y < 599) begin
+					x <= 10'd0;
+					y <= y + 10'd1;
+					overflow <= 0;
+				end else begin
+					x <= 10'b0;
+					y <= 10'b0;
+					overflow <= 1;
+				end
+			end else if (State == IDLE) begin
+				x <= x;
+				y <= y;
+				overflow <= 0;
+			end 
+			end else  begin //START
+				x <= 10'b0;
+				y <= 10'b0;
+				overflow <= 0;
+			end 
+		end
+	end
 
+  	// Remove these when you implement the frame filler:
 
-
-
-
+  	assign wdf_wr_en = (State == PUSH);
+  	assign af_wr_en  = (State == PUSH);
+  	assign ready     = (State == START);
+	assign wdf_din   = {8'd0, color, 8'd0, color, 8'd0, color, 8'd0, color}
+	assign wdf_mask_din = 16'd0;
+	reg [18:0] offset;
+	assign af_addr_din = {6'b000000, FF_frame_base[27:22], y, x[9:3], 2'b00};
 endmodule

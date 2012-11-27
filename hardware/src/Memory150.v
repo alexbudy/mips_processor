@@ -143,6 +143,11 @@ module Memory150(
     wire		 cmd_rdf_valid;
     wire		 cmd_af_full;
 
+	//previosuly undeclared wired
+	wire [23:0]	filler_color;
+	wire [31:0] line_color;
+	wire [9:0]  line_point;
+
 
    // DDR2 module:
     mig_v3_61   #(.SIM_ONLY(SIM_ONLY)) ddr2(

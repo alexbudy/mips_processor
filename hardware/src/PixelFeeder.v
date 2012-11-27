@@ -45,7 +45,7 @@ module PixelFeeder( //System:
  ) /* synthesis syn_noprune=1 */;
 
 	always @(*) begin
-		if (fifocount < 7000 & ~feeder_full) 
+		if (fifocount < 2000 & ~feeder_full) 
 			nextState = FETCH;
 		else
 			nextState = IDLE;
@@ -73,8 +73,8 @@ module PixelFeeder( //System:
 					end else begin
 						x <= 10'd0; //Want to change frame at this point, TODO
 						y <= 10'd0;
-						if (frame == 2'b01) frame <= 2'b10;
-						else frame <= 2'b01;
+						//if (frame == 2'b01) frame <= 2'b10;
+						//else frame <= 2'b01;
 					end
 				end else begin 
 					if (fifocount > 0) fifocount <= (fifocount - (video_ready & ignore_count == 0));
