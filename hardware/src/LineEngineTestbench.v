@@ -85,7 +85,8 @@ module LineEngineTestbench();
 		.af_wr_en(af_wr_en),
 		.wdf_din(wdf_din),
 		.wdf_mask_din(wdf_mask_din),
-		.wdf_wr_en(wdf_wr_en)
+		.wdf_wr_en(wdf_wr_en),
+		.LE_frame_base(0x10400000)
     );
 
     initial begin

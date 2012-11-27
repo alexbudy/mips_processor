@@ -32,7 +32,7 @@ module LineEngine(
 	localparam SEND1 = 2'b01;
 	localparam SEND2 = 2'b10;  
 
-	reg [1:0] = State, nextState;
+	reg [1:0] State, nextState;
 
     // Implement Bresenham's line drawing algorithm here!
     reg [9:0] x, y;
@@ -41,9 +41,17 @@ module LineEngine(
 	reg[9:0] x0,x1,y0,y1,newx0, newx1, newy0, newy1, deltax, deltay, error, ystep;
 	reg steep;
 
-	wire [9:0] error_init;
+	reg [9:0] error_init;
 
-	bres_helper helper(
+	reg [30:0]  af_addr_din_reg; 
+	reg [15:0]  wdf_mask_din_reg;
+
+	assign af_addr_din = af_addr_din_reg;
+	assign af_wr_en = State == SEND1 | State == SEND2;
+	assign wdf_mask_din = wdf_mask_din_reg;
+	assign wdf_wr_en = State == SEND1 | State == SEND2;
+
+	bres_helper helper [15:0] (
 		.x0(x0),
 		.y0(y0),
 		.x1(x1),
@@ -68,7 +76,7 @@ module LineEngine(
 		else if (State == SEND1 && ~af_full && ~wdf_full) nextState <= SEND2;
 		else if (State == SEND2 && x > x1) nextState <= IDLE;
 		else if (State == SEND2 && ~af_full && ~wdf_full) nextState <= SEND1;
-		default nextState <= State;
+		else  nextState <= State;
 		
 	end
 
@@ -82,25 +90,23 @@ module LineEngine(
 		end	
 		else if (State == SEND1) begin	
 			if (steep) begin
-				af_addr_din <= {6'b0,LE_frame_base[27:22],x,y[9:3],2'b0};
-				wdf_mask_din <= y[5] ? 16{1'b1} : ({4{1'b0}, 12{1'b1}} >> y[4:3]);
-			else
-				af_addr_din <= {6'b0, LE_frame_base[27:22],y,x[9:3],2'b0};
-				wdf_mask_din <= x[5] ? 16{1'b1} : ({4{1'b0}, 12{1'b1}} >> x[4:3]);
+				af_addr_din_reg <= {6'b0,LE_frame_base[27:22],x,y[9:3],2'b0};
+				wdf_mask_din_reg <= y[5] ? {16{1'b1}} : ({{4{1'b0}}, {12{1'b1}}} >> y[4:3]);
 			end
-			wdf_wr_en <= 1'b1;			
-			af_wr_en <= 1'b1;
+			else begin
+				af_addr_din_reg <= {6'b0, LE_frame_base[27:22],y,x[9:3],2'b0};
+				wdf_mask_din_reg <= x[5] ? {16{1'b1}} : ({{4{1'b0}}, {12{1'b1}}} >> x[4:3]);
+			end
 				
 		end else if (State == SEND2) begin
 			if (steep) begin
-				af_addr_din <= {6'b0,LE_frame_base[27:22],x,y[9:3],2'b0};
-				wdf_mask_din <= (~y[5]) ? 16{1'b1} : ({4{1'b0}, 12{1'b1}} >> y[4:3]);
-			else
-				af_addr_din <= {6'b0,LE_frame_base[27:22],y,x[9:3],2'b0};
-				wdf_mask_din <= (~x[5]) ? 16{1'b1} : ({4{1'b0}, 12{1'b1}} >> x[4:3]);
+				af_addr_din_reg <= {6'b0,LE_frame_base[27:22],x,y[9:3],2'b0};
+				wdf_mask_din_reg <= (~y[5]) ? {16{1'b1}} : ({{4{1'b0}}, {12{1'b1}}} >> y[4:3]);
 			end
-			wdf_wr_en <= 1'b1;			
-			af_wr_en <= 1'b1;
+			else begin
+				af_addr_din_reg <= {6'b0,LE_frame_base[27:22],y,x[9:3],2'b0};
+				wdf_mask_din_reg <= (~x[5]) ? {16{1'b1}} : ({{4{1'b0}}, {12{1'b1}}} >> x[4:3]);
+			end
 				
 			
 			if (error < deltay) begin
@@ -111,16 +117,13 @@ module LineEngine(
 			error <= error - deltay;
 			x <= x + 1;
 			//	nextState <= (x <= newx1) ? SEND1 : IDLE;
-		end else //IDLE
+		end else begin//IDLE
 			error_init <= deltax >> 1;
-			wdf_wr_en <= 1'b0;
-			af_wr_en <= 1'b0;
-			wdf_mask_din <= 16{1'b1};
+			wdf_mask_din_reg <= {16{1'b1}};
 			x <= newx0;
 			y <= newy0;
 			ystep <= (newy0 < newy1)? 10'b1: 10'b1111111111;
-
-		begin
+		end
 	end
 	
 	

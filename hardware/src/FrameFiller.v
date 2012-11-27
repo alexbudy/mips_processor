@@ -63,7 +63,6 @@ module FrameFiller(//system:
 				x <= x;
 				y <= y;
 				overflow <= 0;
-			end 
 			end else  begin //START
 				x <= 10'b0;
 				y <= 10'b0;
@@ -77,7 +76,7 @@ module FrameFiller(//system:
   	assign wdf_wr_en = (State == PUSH);
   	assign af_wr_en  = (State == PUSH);
   	assign ready     = (State == START);
-	assign wdf_din   = {8'd0, color, 8'd0, color, 8'd0, color, 8'd0, color}
+	assign wdf_din   = {8'd0, color, 8'd0, color, 8'd0, color, 8'd0, color};
 	assign wdf_mask_din = 16'd0;
 	reg [18:0] offset;
 	assign af_addr_din = {6'b000000, FF_frame_base[27:22], y, x[9:3], 2'b00};
