@@ -31,6 +31,7 @@ module LineEngine(
 	localparam IDLE = 2'b00;
 	localparam SEND1 = 2'b01;
 	localparam SEND2 = 2'b10;  
+	localparam UPDATE = 2'b11;  
 
 	reg [1:0] State, nextState;
 
@@ -38,20 +39,26 @@ module LineEngine(
     reg [9:0] x, y;
     reg [31:0] color;
 	
-	reg[9:0] x0,x1,y0,y1,newx0, newx1, newy0, newy1, deltax, deltay, error, ystep;
-	reg steep;
+	//reg[9:0] x0,x1,y0,y1,newx0, newx1, newy0, newy1, deltax, deltay, error, ystep;
+	reg[9:0] x0, x1, y0, y1, error, ystep;
+	wire[9:0] newx0, newx1, newy0, newy1, deltax, deltay;
+	//wire[9:0] newx0, newx1, newy0, newy1, deltax ;
+	wire steep;
 
-	reg [9:0] error_init;
+
+	wire [9:0] error_init;
 
 	reg [30:0]  af_addr_din_reg; 
 	reg [15:0]  wdf_mask_din_reg;
 
 	assign af_addr_din = af_addr_din_reg;
-	assign af_wr_en = State == SEND1 | State == SEND2;
+	assign af_wr_en = (State == SEND1 | State == SEND2);
 	assign wdf_mask_din = wdf_mask_din_reg;
-	assign wdf_wr_en = State == SEND1 | State == SEND2;
+	assign wdf_wr_en = (State == SEND1 | State == SEND2);
 
-	bres_helper helper [15:0] (
+	assign ytest = y;
+
+	bres_helper helper (
 		.x0(x0),
 		.y0(y0),
 		.x1(x1),
@@ -64,23 +71,28 @@ module LineEngine(
 		.deltax(deltax),	
 		.deltay(deltay)	
 	);
+
 	
 	always@(*) begin
-		if (LE_x0_valid) x0 <= LE_point;
-		if (LE_x1_valid) x1 <= LE_point;
-		if (LE_y0_valid) y0 <= LE_point;
-		if (LE_y1_valid) y1 <= LE_point;
-		if (LE_color_valid) color <= LE_color;
+		if (LE_x0_valid) x0 = LE_point;
+		if (LE_x1_valid) x1 = LE_point;
+		if (LE_y0_valid) y0 = LE_point;
+		if (LE_y1_valid) y1 = LE_point;
+		if (LE_color_valid) color = LE_color;
 
-		if (LE_trigger & State == IDLE) nextState <= SEND1; 
-		else if (State == SEND1 && ~af_full && ~wdf_full) nextState <= SEND2;
-		else if (State == SEND2 && x > x1) nextState <= IDLE;
-		else if (State == SEND2 && ~af_full && ~wdf_full) nextState <= SEND1;
-		else  nextState <= State;
-		
+		if (LE_trigger & State == IDLE) begin
+			error = error_init;
+			nextState = SEND1; 
+		end
+		else if (State == SEND1 && ~af_full && ~wdf_full) nextState = SEND2;
+		else if (State == SEND2) nextState = UPDATE;
+		else if (State == UPDATE && x >= newx1) nextState = IDLE;
+		else if (State == UPDATE && ~af_full && ~wdf_full) nextState = SEND1;
+		else nextState <= State;
 	end
 
 	assign wdf_din = {color,color,color,color};
+	assign error_init = (deltax >> 1);
 
 	always@(posedge clk) begin
 		State <= nextState;
@@ -91,34 +103,33 @@ module LineEngine(
 		else if (State == SEND1) begin	
 			if (steep) begin
 				af_addr_din_reg <= {6'b0,LE_frame_base[27:22],x,y[9:3],2'b0};
-				wdf_mask_din_reg <= y[5] ? {16{1'b1}} : ({{4{1'b0}}, {12{1'b1}}} >> y[4:3]);
+				wdf_mask_din_reg <= y[5] ? {16{1'b1}} : ~({{4{1'b1}}, {12{1'b0}}} >> {y[4:3],2'b00});
 			end
 			else begin
 				af_addr_din_reg <= {6'b0, LE_frame_base[27:22],y,x[9:3],2'b0};
-				wdf_mask_din_reg <= x[5] ? {16{1'b1}} : ({{4{1'b0}}, {12{1'b1}}} >> x[4:3]);
+				wdf_mask_din_reg <= x[5] ? {16{1'b1}} : ~({{4{1'b1}}, {12{1'b0}}} >> {x[4:3],2'b00});
 			end
-				
 		end else if (State == SEND2) begin
 			if (steep) begin
 				af_addr_din_reg <= {6'b0,LE_frame_base[27:22],x,y[9:3],2'b0};
-				wdf_mask_din_reg <= (~y[5]) ? {16{1'b1}} : ({{4{1'b0}}, {12{1'b1}}} >> y[4:3]);
+				wdf_mask_din_reg <= (~y[5]) ? {16{1'b1}} : ~({{4{1'b1}}, {12{1'b0}}} >> {y[4:3],2'b00});
 			end
 			else begin
 				af_addr_din_reg <= {6'b0,LE_frame_base[27:22],y,x[9:3],2'b0};
-				wdf_mask_din_reg <= (~x[5]) ? {16{1'b1}} : ({{4{1'b0}}, {12{1'b1}}} >> x[4:3]);
+				wdf_mask_din_reg <= (~x[5]) ? {16{1'b1}} : ~({{4{1'b1}}, {12{1'b0}}} >> {x[4:3],2'b00});
 			end
-				
-			
-			if (error < deltay) begin
-				y <= y + ystep;
-				error <= error + deltax;
-			end
+		end
+		else if (State == UPDATE) begin
+			if (!af_full && !wdf_full) begin
+				if (error < deltay) begin
+					y <= y + ystep;
+					error <= error + deltax;
+				end
 
-			error <= error - deltay;
-			x <= x + 1;
-			//	nextState <= (x <= newx1) ? SEND1 : IDLE;
-		end else begin//IDLE
-			error_init <= deltax >> 1;
+				error <= error - deltay;
+				x <= x + 1;
+			end
+		end else begin //IDLE
 			wdf_mask_din_reg <= {16{1'b1}};
 			x <= newx0;
 			y <= newy0;
@@ -133,17 +144,17 @@ module LineEngine(
 endmodule
 
 module bres_helper(
-	input [9:0] 	x0,
+	input [9:0]  	x0,
 	input [9:0] 	x1,
 	input [9:0] 	y0,
 	input [9:0] 	y1,
-	output [9:0]	newx0,
-	output [9:0]	newx1,
-	output [9:0]	newy0,
-	output [9:0]	newy1,
-	output 			steep,
-	output [9:0]	deltax,
-	output [9:0]	deltay
+	output [9:0] newx0,
+	output [9:0] newx1,
+	output [9:0] newy0,
+	output [9:0] newy1,
+	output 		 steep,
+	output [9:0] deltax,
+	output [9:0] deltay
 );
 
 	assign steep = ((y1>y0) ? (y1 - y0) : (y0 - y1)) > ((x1>x0)?(x1-x0):(x0-x1));

@@ -67,6 +67,11 @@ module LineEngineTestbench();
     assign x = {af_addr_din[8:2], mask};
     assign y = af_addr_din[18:9];
 
+	wire [31:0] frame_addr;
+	assign frame_addr = 32'h10400000;
+
+	//wire steepy;
+	wire[9:0] newx0, newx1, newy0, newy1, deltax, deltay;
     LineEngine le (
     .clk(Clock),
     .rst(rst),
@@ -86,8 +91,28 @@ module LineEngineTestbench();
 		.wdf_din(wdf_din),
 		.wdf_mask_din(wdf_mask_din),
 		.wdf_wr_en(wdf_wr_en),
-		.LE_frame_base(0x10400000)
+		.LE_frame_base(frame_addr)
+		//.steep(steepy),
+		//.deltay(deltay),
+		//.ytest(ytest),
+		//.STATE(STATE)
     );
+
+	/*
+	bres_helper bh (
+		.x0(10'd123),
+		.y0(10'd345),
+		.x1(10'd138),
+		.y1(10'd100),
+		.newx0(newx0),
+		.newy0(newy0),
+		.newx1(newx1),
+		.newy1(newy1),
+		.steep(steepy),
+		.deltax(deltax),	
+		.deltay(deltay)	
+	);	
+*/
 
     initial begin
       @(posedge Clock);
@@ -103,10 +128,10 @@ module LineEngineTestbench();
       #(10*Cycle);
       rst = 1'b0;
       #(Cycle);
-      drawLine(10'd0, 10'd0, 10'd1023, 10'd767, 32'h00_7F_00_00);
-      // drawLine(10'd1000, 10'd700, 10'd0, 10'd0, 32'h00_7F_00_00);
+     // drawLine(10'd0, 10'd0, 10'd1023, 10'd767, 32'h00_7F_00_00);
+   //  drawLine(10'd1000, 10'd700, 10'd0, 10'd0, 32'h00_7F_00_00);
       // drawLine(10'd500, 10'd700, 10'd0, 10'd0, 32'h00_7F_00_00);
-      // drawLine(10'd0, 10'd0, 10'd400, 10'd652, 32'h00_7F_00_00);
+       drawLine(10'd0, 10'd0, 10'd400, 10'd652, 32'h00_7F_00_00);
     end
 
     task drawLine;
@@ -142,7 +167,19 @@ module LineEngineTestbench();
       #(Cycle);
       while(!LE_ready) begin
         if(wdf_wr_en && wdf_mask_din != 16'hFFFF) begin
-          $display("%4d %4d", x, y);
+		//	$display("%d ", newx0);
+		//	$display("%d ", newy0);
+		//	$display("%d ", newx1);
+		//	$display("%d ", newy1);
+		//	$display("%d ", steepy);
+          //$display("%b ", wdf_mask_din);
+          //$display("%b ", af_addr_din);
+          //$display("%b ", steepy);
+          //$display("%d ", deltay);
+          //$display("%d ", ytest);
+          $display("%d %d", x, y);
+         // $display("%4d", STATE );
+         // $display("%b %b", x, y);
         end
         #(Cycle);
       end
