@@ -60,6 +60,9 @@ wire [31:0] LLout; //Load logic out
 wire InterruptHandled, InterruptRequest;
 wire [31:0]  ALU_output, COP_out;
 
+reg [31:0] GP_frame_reg, GP_code_reg;
+reg GP_valid_reg;
+
 
 
 assign InterruptHandled = !stall & InterruptRequest & (JumpBranch_Y == 3'b000 & 
@@ -250,6 +253,10 @@ always @(posedge clk)begin
 			prevDataOutValid <= DataOutValid;
 			prevDataInReady <= DataInReady;
 			PCoutreg <= PC_X;
+			
+			GP_frame_reg <= RT;
+			GP_code_reg <= RT;
+			GP_valid_reg <= (ALU_out_Y == 32'h80000030 && (we_d != 4'b0000));
 		end
 	end
 end
@@ -332,6 +339,11 @@ assign PC_shifted_Y = PCoutplus4_Y + ({{16{inst_Y[15]}}, inst_Y[15:0]} << 2);
 assign RS = (PCPlus8_Z? rd1:((a3_Z == inst_Y[25:21] & RegWrite_Z & ~stall) ? wd : rd1)); 
 assign RT = (PCPlus8_Z? rd2:((a3_Z == inst_Y[20:16] & RegWrite_Z & ~stall) ? wd : rd2)); 
 assign A = (ALURegSel_Y ? RT : RS);
+
+//GP stuff
+assign gp_code = (ALU_out_Y == 32'h80000030 && (we_d != 4'b0000)) ? GP_code_reg : 32'h0;
+assign gp_frame = (ALU_out_Y == 32'h80000040 && (we_d != 4'b0000)) ? GP_frame_reg : 32'h0;
+assign gp_valid = GP_valid_reg; 
 
 //stage three
 assign wd_Z = (MemToReg_Z ? (ALU_out_Z[31:28] == 4'b1000 ? UARTout_Z : LLout) : ALU_out_Z);
