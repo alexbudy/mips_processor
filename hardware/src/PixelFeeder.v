@@ -32,17 +32,6 @@ module PixelFeeder( //System:
 	reg State, nextState;
 	reg[31:0] fifocount;
 	wire feeder_full, feeder_empty;
-// ChipScope components:
- wire [35:0] chipscope_control;
- chipscope_icon icon(
- .CONTROL0(chipscope_control)
- ) /* synthesis syn_noprune=1 */;
- chipscope_ila ila(
- .CONTROL(chipscope_control),
- .CLK(cpu_clk_g),
- .DATA({x,y,cpu_clk_g,fifocount,State, ignore_count,af_wr_en, rdf_valid, af_full, video_ready }),
- .TRIG0(rst)
- ) /* synthesis syn_noprune=1 */;
 
 	always @(*) begin
 		if (fifocount < 2000 & ~feeder_full) 

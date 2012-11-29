@@ -81,23 +81,23 @@ module LineEngine(
 		if (LE_color_valid) color = LE_color;
 
 		if (LE_trigger & State == IDLE) begin
-			error = error_init;
+			//error = error_init;
 			nextState = SEND1; 
 		end
 		else if (State == SEND1 && ~af_full && ~wdf_full) nextState = SEND2;
 		else if (State == SEND2) nextState = UPDATE;
 		else if (State == UPDATE && x >= newx1) nextState = IDLE;
 		else if (State == UPDATE && ~af_full && ~wdf_full) nextState = SEND1;
-		else nextState <= State;
+		else nextState = State;
 	end
 
 	assign wdf_din = {color,color,color,color};
 	assign error_init = (deltax >> 1);
 
 	always@(posedge clk) begin
-		State <= nextState;
+		State <= rst ? IDLE : nextState;
 		if (rst) begin 
-			State <= IDLE;		
+			//State <= IDLE;		
 			error <= error_init;
 		end	
 		else if (State == SEND1) begin	
@@ -123,13 +123,15 @@ module LineEngine(
 			if (!af_full && !wdf_full) begin
 				if (error < deltay) begin
 					y <= y + ystep;
-					error <= error + deltax;
+					error <= error + deltax - deltay;
+				end else begin
+					error <= error - deltay;
 				end
 
-				error <= error - deltay;
 				x <= x + 1;
 			end
 		end else begin //IDLE
+			error <= error_init;
 			wdf_mask_din_reg <= {16{1'b1}};
 			x <= newx0;
 			y <= newy0;

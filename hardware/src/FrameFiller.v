@@ -47,7 +47,7 @@ module FrameFiller(//system:
 			State <= overflow? START:nextState;
 			if (State == PUSH) begin
 				if (x < 792) begin
-					 x <= x + 10'd8;
+					x <= x + 10'd8;
 					overflow <= 0;
 				end
 				else if (y < 599) begin
@@ -78,6 +78,5 @@ module FrameFiller(//system:
   	assign ready     = (State == START);
 	assign wdf_din   = {8'd0, color, 8'd0, color, 8'd0, color, 8'd0, color};
 	assign wdf_mask_din = 16'd0;
-	reg [18:0] offset;
 	assign af_addr_din = {6'b000000, FF_frame_base[27:22], y, x[9:3], 2'b00};
 endmodule
