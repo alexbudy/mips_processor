@@ -28,12 +28,23 @@ module FrameFiller(//system:
 
 	reg [1:0] State, nextState;
 	reg overflow;
+
+// ChipScope components:
+// wire [35:0] chipscope_control;
+// chipscope_icon icon(
+// .CONTROL0(chipscope_control)
+// ) /* synthesis syn_noprune=1 */;
+// chipscope_ila ila(
+// .CONTROL(chipscope_control),
+// .CLK(clk),
+// .DATA({rst, af_full, wdf_full, wdf_wr_en, af_wr_en, ready, x,y,State,nextState,overflow} ),
+// .TRIG0( rst)
+//) /* synthesis syn_noprune=1 */;
 	
 	always @(*) begin
-		if (valid & !af_full & !wdf_full) nextState = PUSH; 
-		else if (af_full | wdf_full) nextState = (State == START) ? START : IDLE;
-		else if (!af_full & !wdf_full) nextState = (State == IDLE) ? PUSH : State; 
-		else nextState = State;
+		if (valid && State == START) nextState = PUSH; 
+		else if (State == PUSH) nextState = IDLE;
+		else  nextState = PUSH;
 	end	
 
 	always @(posedge clk) begin
@@ -46,18 +57,20 @@ module FrameFiller(//system:
 		else begin
 			State <= overflow? START:nextState;
 			if (State == PUSH) begin
-				if (x < 792) begin
-					x <= x + 10'd8;
-					overflow <= 0;
-				end
-				else if (y < 599) begin
-					x <= 10'd0;
-					y <= y + 10'd1;
-					overflow <= 0;
-				end else begin
-					x <= 10'b0;
-					y <= 10'b0;
-					overflow <= 1;
+				if (!af_full && !wdf_full) begin
+					if (x < 792) begin
+						x <= x + 10'd8;
+						overflow <= 0;
+					end
+					else if (y < 599) begin
+						x <= 10'd0;
+						y <= y + 10'd1;
+						overflow <= 0;
+					end else begin
+						x <= 10'b0;
+						y <= 10'b0;
+						overflow <= 1;
+					end
 				end
 			end else if (State == IDLE) begin
 				x <= x;
@@ -67,13 +80,13 @@ module FrameFiller(//system:
 				x <= 10'b0;
 				y <= 10'b0;
 				overflow <= 0;
-			end 
+			end
 		end
 	end
 
   	// Remove these when you implement the frame filler:
 
-  	assign wdf_wr_en = (State == PUSH);
+  	assign wdf_wr_en = (State == PUSH || State == IDLE);
   	assign af_wr_en  = (State == PUSH);
   	assign ready     = (State == START);
 	assign wdf_din   = {8'd0, color, 8'd0, color, 8'd0, color, 8'd0, color};
