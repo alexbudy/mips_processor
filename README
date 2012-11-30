@@ -19,6 +19,9 @@ start program: 0x10005000
 CP4:
 Frame 1: 0x1040_0000
 Frame 2: 0x1080_0000
+mem_mapped GP regs
+GP_frame_reg: 80000030
+GP_code_reg:  80000040
 
 spec broken down:
 isr resides in start.s (isr folder) 
