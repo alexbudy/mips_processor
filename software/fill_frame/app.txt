@@ -1,0 +1,63 @@
+
+app.elf:     file format elf32-bigmips
+
+
+Disassembly of section .text:
+
+10005000 <_start>:
+10005000:	3c1d1000 	lui	sp,0x1000
+10005004:	0c001403 	jal	1000500c <main>
+10005008:	37bd7000 	ori	sp,sp,0x7000
+
+1000500c <main>:
+1000500c:	27bdffd8 	addiu	sp,sp,-40
+10005010:	afa00010 	sw	zero,16(sp)
+10005014:	afa00014 	sw	zero,20(sp)
+10005018:	3c0200ff 	lui	v0,0xff
+1000501c:	afa00018 	sw	zero,24(sp)
+10005020:	3442ffff 	ori	v0,v0,0xffff
+10005024:	afa0001c 	sw	zero,28(sp)
+10005028:	afa20020 	sw	v0,32(sp)
+1000502c:	afa00024 	sw	zero,36(sp)
+10005030:	3c020009 	lui	v0,0x9
+10005034:	34425e6f 	ori	v0,v0,0x5e6f
+10005038:	8fa30024 	lw	v1,36(sp)
+1000503c:	00000000 	nop
+10005040:	0043102a 	slt	v0,v0,v1
+10005044:	14400010 	bnez	v0,10005088 <main+0x7c>
+10005048:	00000000 	nop
+1000504c:	3c021040 	lui	v0,0x1040
+10005050:	8fa30024 	lw	v1,36(sp)
+10005054:	00000000 	nop
+10005058:	8fa40020 	lw	a0,32(sp)
+1000505c:	00000000 	nop
+10005060:	00031880 	sll	v1,v1,0x2
+10005064:	34420000 	ori	v0,v0,0x0
+10005068:	00621021 	addu	v0,v1,v0
+1000506c:	ac440000 	sw	a0,0(v0)
+10005070:	8fa20024 	lw	v0,36(sp)
+10005074:	00000000 	nop
+10005078:	24420001 	addiu	v0,v0,1
+1000507c:	afa20024 	sw	v0,36(sp)
+10005080:	0800140c 	j	10005030 <main+0x24>
+10005084:	00000000 	nop
+10005088:	24020000 	li	v0,0
+1000508c:	27bd0028 	addiu	sp,sp,40
+10005090:	03e00008 	jr	ra
+10005094:	00000000 	nop
+
+Disassembly of section .reginfo:
+
+00000000 <.reginfo>:
+   0:	a000001c 	sb	zero,28(zero)
+	...
+
+Disassembly of section .pdr:
+
+00000000 <.pdr>:
+   0:	1000500c 	b	14034 <_start-0xfff0fcc>
+   4:	00000000 	nop
+	...
+  14:	00000028 	0x28
+  18:	0000001d 	0x1d
+  1c:	0000001f 	0x1f
