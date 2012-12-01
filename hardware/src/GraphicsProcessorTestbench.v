@@ -42,10 +42,12 @@ module GraphicsProcessorTestbench();
     reg [31:0] gp_frame;
     reg gp_valid;
     
+	reg [511:0] memory;
+	
+	
     
     GraphicsProcessor DUT(	.clk(Clock),
     						.rst(Reset),
-    						.bsel(bsel),
     						.rdf_valid(rdf_valid),
     						.af_full(af_full),
     						.rdf_dout(rdf_dout),
@@ -75,7 +77,26 @@ module GraphicsProcessorTestbench();
     						
 						);
     initial begin
-    	//TODO put your code here
+		af_full = 1'b0;
+		Reset = 1'b1;
+		#(10*Cycle);
+		Reset = 1'b0;
+		
+		gp_code = 32'h1000abcd;
+		gp_frame = 32'h10400000;
+		gp_valid = 1'b1;
+		#(Cycle);
+		gp_valid = 1'b0;	
+		#(Cycle);
+		#(Cycle);
+		rdf_dout = {32'h01deadbe, 32'h0, 32'h01ffffff, 32'h01aedefe};	
+		rdf_valid = 1'b1;
+		#(Cycle);
+		rdf_dout = {32'h01222222, 32'h01333333, 32'h01444444, 32'h01aaaaaa};	
+		
+		#(10*Cycle);
+		FF_ready = 1'b0;
+		
     	$finish();
     end
 

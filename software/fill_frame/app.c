@@ -22,14 +22,15 @@ for (int y = 0; y < 600; y++) {
 */	
 
 unsigned int i = 0;
-unsigned int color = 0x00ffffff;
+unsigned int color = 0x00ff0000;
 
-//while (1) {
-		for (int i = 0; i < 614000; i++) {
+int n = 0;
+while (1) {
+		for (int i = 0; i < 646000; i++) {
 			FRAME1[i] = color; 
 		}
-	//	color += 0x0f0f0f;
-//};
+		color += 0x000f0f;
+};
 /*
 		while (y < 599) {
 			while (x < 799) {

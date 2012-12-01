@@ -3,7 +3,7 @@
 
 _start:
     li      $sp, 0x10007000
-    jal     main
+#    jal     main
 	
 .if 0
 	li $t1, 0x10400000
@@ -12,7 +12,7 @@ _start:
 	li $t4, 800
 	li $t5, 600
 	li $s1, 400
-	li $t9, 0x00ffffff
+	li $t9, 0x00000000
 
 	loopy:
 	beq $t3, $t5, done	
