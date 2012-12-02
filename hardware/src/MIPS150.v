@@ -1,9 +1,6 @@
 `include "Opcode.vh"
 
 module MIPS150(
-
-
-
     input clk,
     input rst,
 
@@ -24,6 +21,7 @@ module MIPS150(
     input [31:0] instruction,
     input stall,
 
+	//gp stuff
     output [31:0] gp_code,
     output [31:0] gp_frame,
     output gp_valid,
@@ -232,6 +230,10 @@ always @(posedge clk)begin
 			prevDataOutValid <= DataOutValid;
 			prevDataInReady <= DataInReady;
 			PCoutreg <= 32'h40000000;
+
+			GP_frame_reg <= 32'd0;
+			GP_code_reg <= 32'd0;
+			GP_valid_reg <= 1'd0;
 	end
 	else begin
 		if (!stall) begin
@@ -254,8 +256,8 @@ always @(posedge clk)begin
 			prevDataInReady <= DataInReady;
 			PCoutreg <= PC_X;
 			
-			GP_frame_reg <= RT;
-			GP_code_reg <= RT;
+			GP_frame_reg <= (ALU_out_Y == 32'h80000040 && (we_d != 4'b0000)) ? RT : GP_frame_reg;
+			GP_code_reg <= (ALU_out_Y == 32'h80000030 && (we_d != 4'b0000)) ? RT : GP_frame_reg;
 			GP_valid_reg <= (ALU_out_Y == 32'h80000030 && (we_d != 4'b0000));
 		end
 	end
@@ -341,8 +343,8 @@ assign RT = (PCPlus8_Z? rd2:((a3_Z == inst_Y[20:16] & RegWrite_Z & ~stall) ? wd 
 assign A = (ALURegSel_Y ? RT : RS);
 
 //GP stuff
-assign gp_code = (ALU_out_Y == 32'h80000030 && (we_d != 4'b0000)) ? GP_code_reg : 32'h0;
-assign gp_frame = (ALU_out_Y == 32'h80000040 && (we_d != 4'b0000)) ? GP_frame_reg : 32'h0;
+assign gp_code = GP_code_reg;
+assign gp_frame = GP_frame_reg;
 assign gp_valid = GP_valid_reg; 
 
 //stage three
