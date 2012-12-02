@@ -80,7 +80,7 @@ module LineEngine(
 		//if (LE_color_valid) color = LE_color;
 		
 
-		if ((State == IDLE)) nextState = IDLE; //add LE_trigger here later
+		if ((State == IDLE)) nextState = SEND1; //add LE_trigger here later
 		else if ((State == SEND1) && ~af_full && ~wdf_full) nextState = SEND2;
 		else if ((State == SEND2) && ~wdf_full) nextState = UPDATE;
 		else if ((State == UPDATE) && (x >= newx1)) nextState = IDLE;
