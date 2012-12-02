@@ -80,7 +80,7 @@ module LineEngine(
 		//if (LE_color_valid) color = LE_color;
 		
 
-		if ((State == IDLE)) nextState = SEND1; //add LE_trigger here later
+		if ((State == IDLE)) nextState = IDLE; //add LE_trigger here later
 		else if ((State == SEND1) && ~af_full && ~wdf_full) nextState = SEND2;
 		else if ((State == SEND2) && ~wdf_full) nextState = UPDATE;
 		else if ((State == UPDATE) && (x >= newx1)) nextState = IDLE;
@@ -143,17 +143,6 @@ module LineEngine(
 
     	assign LE_ready = (State == IDLE);
 
-	 //ChipScope components:
-	 wire [35:0] chipscope_control;
-	 chipscope_icon icon(
-	 .CONTROL0(chipscope_control)
-	 ) /* synthesis syn_noprune=1 */;
-	 chipscope_ila ila(
-	 .CONTROL(chipscope_control),
-	 .CLK(clk),
-	 .DATA({wdf_full ,af_full,rst,x, y, State, nextState, wdf_mask_din, steep, af_wr_en, wdf_wr_en}),
-	 .TRIG0(rst)
-	) /* synthesis syn_noprune=1 */;
 endmodule
 
 module bres_helper(

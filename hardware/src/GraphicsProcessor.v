@@ -151,6 +151,7 @@ module GraphicsProcessor(
    assign LE_frame = 32'd0;
    assign FF_frame = 32'd0;
    assign FF_color = 24'd0;
+	assign FF_valid = 0;
    assign rdf_rd_en = 0;
    assign af_wr_en = 0;
    assign af_addr_din = 31'd0;

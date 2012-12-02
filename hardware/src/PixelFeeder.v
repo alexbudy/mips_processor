@@ -34,7 +34,7 @@ module PixelFeeder( //System:
 	wire feeder_full, feeder_empty;
 
 	always @(*) begin
-		if ((fifocount < 2000) && ~feeder_full) 
+		if ((fifocount < 2000) && ~feeder_full && (ignore_count == 0)) //possibly 8000? possibly && ignore_count <= 47k?
 			nextState = FETCH;
 		else
 			nextState = IDLE;
@@ -52,7 +52,7 @@ module PixelFeeder( //System:
 			State <= nextState;
 			if (State == FETCH)begin
 
-				if (~af_full) begin
+				if (af_wr_en && ~af_full) begin
 					fifocount <= (fifocount + 8 -(video_ready & (ignore_count == 0)));
 					if (x < 792)
 						x <= x + 10'd8;
@@ -76,7 +76,7 @@ module PixelFeeder( //System:
 		end
 	end
 
-	assign af_wr_en = ((State == FETCH) && (ignore_count == 32'd0));
+	assign af_wr_en = ((State == FETCH));
 	assign af_addr_din = {6'b000000, 4'b0000, frame, y,x[9:3],2'b00};
 
     /* We drop the first frame to allow the buffer to fill with data from
@@ -84,7 +84,7 @@ module PixelFeeder( //System:
     always @(posedge cpu_clk_g) begin
        if(rst)
             ignore_count <= 32'd480000; // 600*800 
-       else if(ignore_count != 0 & video_ready)
+       else if((ignore_count != 0) & video_ready)
             ignore_count <= ignore_count - 32'b1;
        else
             ignore_count <= ignore_count;
@@ -107,7 +107,7 @@ module PixelFeeder( //System:
     	.empty(feeder_empty));
 
     assign video = feeder_dout[23:0];
-    assign video_valid = video_ready & (ignore_count == 0);//should be 1'b1?
-	assign rdf_rd_en = ~feeder_full; //should be 1'b1?
+    assign video_valid = 1'b1; //video_ready & (ignore_count == 0); should be 1'b1?
+	assign rdf_rd_en = 1'b1; //~feeder_full; should be 1'b1?
 
 endmodule
