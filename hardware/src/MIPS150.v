@@ -258,7 +258,7 @@ always @(posedge clk)begin
 			
 			GP_frame_reg <= (ALU_out_Y == 32'h80000040 && (we_d != 4'b0000) && !stall) ? RT : GP_frame_reg;
 			GP_code_reg <= (ALU_out_Y == 32'h80000030 && (we_d != 4'b0000) && !stall) ? RT : GP_frame_reg;
-			GP_valid_reg <= (ALU_out_Y == 32'h80000030 && (we_d != 4'b0000) && !stall);
+			GP_valid_reg <= (ALU_out_Y == 32'h80000030 && (we_d != 4'b0000));
 		end
 	end
 end

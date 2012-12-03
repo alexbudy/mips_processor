@@ -76,7 +76,9 @@ module GraphicsProcessor(
 	assign af_wr_en = (State == FETCH);
 	assign rdf_wr_en = ((State == READ1) || (State == READ2));
 
-	assign af_addr_din = {10'b0, GP_CODE[23:3]};
+
+	reg [30:0] addr_start; 
+	assign af_addr_din = addr_start;
 
 	//FF assigns
 	assign FF_color = current_inst[23:0];
@@ -134,6 +136,7 @@ module GraphicsProcessor(
 	always @ (posedge clk) begin
 		if (State == FETCH) begin
 			prevState <= FETCH;
+			if (nextState == READ1) addr_start <= addr_start + 4;
 		end	else if (State == READ1) begin
 			prevState <= READ1;
 			inst_fifo <= {rdf_dout, 128'd0};
@@ -160,6 +163,7 @@ module GraphicsProcessor(
 		end else if (State == IDLE) begin
 			inst_count <= 0;
 			LE_inst_count_state <= 0;
+			addr_start <= {6'b000000, GP_CODE[25:1]};
 		end
 	end
 
