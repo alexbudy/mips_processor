@@ -79,16 +79,16 @@ module GraphicsProcessor(
 
 	reg [30:0] addr_start; 
 // ChipScope components:
- wire [35:0] chipscope_control;
- chipscope_icon icon(
- .CONTROL0(chipscope_control)
- ) /* synthesis syn_noprune=1 */;
- chipscope_ila ila(
- .CONTROL(chipscope_control),
- .CLK(clk),
- .DATA({clk,rst,LE_ready,LE_color,LE_point,LE_color_valid,LE_x0_valid,LE_y0_valid,LE_x1_valid,LE_y1_valid,LE_trigger,LE_frame,FF_ready,FF_valid,FF_color,FF_frame,rdf_valid,af_full,rdf_dout,rdf_rd_en,af_wr_en,af_addr_din,GP_CODE,GP_FRAME,GP_valid,State,nextState,prevState,inst_count,current_inst,LE_inst_count_state,color,top_byte_inst,addr_start}),
- .TRIG0(GP_valid)
-) /* synthesis syn_noprune=1 */;
+// wire [35:0] chipscope_control;
+// chipscope_icon icon(
+// .CONTROL0(chipscope_control)
+// ) /* synthesis syn_noprune=1 */;
+// chipscope_ila ila(
+// .CONTROL(chipscope_control),
+// .CLK(clk),
+// .DATA({clk,rst,LE_ready,LE_color,LE_point,LE_color_valid,LE_x0_valid,LE_y0_valid,LE_x1_valid,LE_y1_valid,LE_trigger,LE_frame,FF_ready,FF_valid,FF_color,FF_frame,rdf_valid,af_full,rdf_dout,rdf_rd_en,af_wr_en,af_addr_din,GP_CODE,GP_FRAME,GP_valid,State,nextState,prevState,inst_count,current_inst,LE_inst_count_state,color,top_byte_inst,addr_start}),
+// .TRIG0(GP_valid)
+//) /* synthesis syn_noprune=1 */;
 
 	assign af_addr_din = addr_start;
 

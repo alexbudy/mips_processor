@@ -32,6 +32,9 @@ module PixelFeeder( //System:
 	reg State, nextState;
 	reg[31:0] fifocount;
 	wire feeder_full, feeder_empty;
+	
+	reg frame_int_reg;
+	assign frame_interrupt = frame_int_reg;
 
 	always @(*) begin
 		if ((fifocount < 2000) && ~feeder_full && (ignore_count == 0)) //possibly 8000? possibly && ignore_count <= 47k?
@@ -47,8 +50,10 @@ module PixelFeeder( //System:
 			frame <= 2'b01;
 			fifocount <= 32'b0;
 			State <= IDLE;
+			frame_int_reg <= 0;
 		end
 		else begin
+			if (frame_int_reg) frame_int_reg <= 1'b0;
 			State <= nextState;
 			if (State == FETCH)begin
 
@@ -62,8 +67,10 @@ module PixelFeeder( //System:
 					end else begin
 						x <= 10'd0; //Want to change frame at this point, TODO
 						y <= 10'd0;
-						//if (frame == 2'b01) frame <= 2'b10;
-						//else frame <= 2'b01;
+						if (frame == 2'b01) frame <= 2'b10;
+						else frame <= 2'b01;
+			
+						frame_int_reg <= 1;
 					end
 				end else begin 
 					if (fifocount > 0) fifocount <= (fifocount - (video_ready & (ignore_count == 0)));
