@@ -68,16 +68,28 @@ module GraphicsProcessor(
 	assign current_inst = inst_fifo[31:0];
 
 	reg [2:0] LE_inst_count_state; //0=sending color, 1=sending x0, 2=sending y0, 3=send x1, 4=send y1 (move inst on 0,1,3, trigger on 4)
-	reg [23:0] color;
+	reg [23:0] color; //useless!
 
 	wire [7:0] top_byte_inst;
 	assign top_byte_inst = current_inst[31:24];
 
 	assign af_wr_en = (State == FETCH);
-	assign rdf_wr_en = ((State == READ1) || (State == READ2));
+	assign rdf_rd_en = ((State == READ1) || (State == READ2));
 
 
 	reg [30:0] addr_start; 
+// ChipScope components:
+ wire [35:0] chipscope_control;
+ chipscope_icon icon(
+ .CONTROL0(chipscope_control)
+ ) /* synthesis syn_noprune=1 */;
+ chipscope_ila ila(
+ .CONTROL(chipscope_control),
+ .CLK(clk),
+ .DATA({clk,rst,LE_ready,LE_color,LE_point,LE_color_valid,LE_x0_valid,LE_y0_valid,LE_x1_valid,LE_y1_valid,LE_trigger,LE_frame,FF_ready,FF_valid,FF_color,FF_frame,rdf_valid,af_full,rdf_dout,rdf_rd_en,af_wr_en,af_addr_din,GP_CODE,GP_FRAME,GP_valid,State,nextState,prevState,inst_count,current_inst,LE_inst_count_state,color,top_byte_inst,addr_start}),
+ .TRIG0(GP_valid)
+) /* synthesis syn_noprune=1 */;
+
 	assign af_addr_din = addr_start;
 
 	//FF assigns

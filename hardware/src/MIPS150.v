@@ -87,16 +87,16 @@ assign RT_shifted_Z = RT_shifted_YZ;
 
 
 // ChipScope components:
- wire [35:0] chipscope_control;
- chipscope_icon icon(
- .CONTROL0(chipscope_control)
- ) /* synthesis syn_noprune=1 */;
- chipscope_ila ila(
- .CONTROL(chipscope_control),
- .CLK(clk),
- .DATA({rst, stall, ALU_out_Y, gp_frame, gp_code, gp_valid, we_d}),
- .TRIG0( InterruptHandled)
-) /* synthesis syn_noprune=1 */;
+// wire [35:0] chipscope_control;
+// chipscope_icon icon(
+// .CONTROL0(chipscope_control)
+// ) /* synthesis syn_noprune=1 */;
+// chipscope_ila ila(
+// .CONTROL(chipscope_control),
+// .CLK(clk),
+// .DATA({rst, stall, ALU_out_Y, gp_frame, gp_code, gp_valid, we_d}),
+// .TRIG0( InterruptHandled)
+//) /* synthesis syn_noprune=1 */;
 
 
 RegFile RegFile(                            
