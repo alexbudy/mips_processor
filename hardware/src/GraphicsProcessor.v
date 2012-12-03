@@ -100,8 +100,6 @@ module GraphicsProcessor(
 			IDLE:begin
 				if (GP_valid)  nextState = FETCH;
 				else nextState = IDLE;
-				
-				LE_inst_count_state <= 0;
 			end
 			FETCH:begin
 				if (af_full) nextState = FETCH;
@@ -161,6 +159,7 @@ module GraphicsProcessor(
 			LE_inst_count_state <= LE_inst_count_state + 1;
 		end else if (State == IDLE) begin
 			inst_count <= 0;
+			LE_inst_count_state <= 0;
 		end
 	end
 
