@@ -38,6 +38,7 @@ module LineEngine(
     	// Implement Bresenham's line drawing algorithm here!
 	reg [9:0] x, y;
 	reg [31:0] color;
+	reg [31:0] frame_reg;
 	
 	//reg[9:0] x0,x1,y0,y1,newx0, newx1, newy0, newy1, deltax, deltay, error, ystep;
 	reg[9:0] x0, x1, y0, y1, error, ystep;
@@ -68,6 +69,7 @@ module LineEngine(
 		if (LE_y0_valid) y0 = LE_point;
 		if (LE_y1_valid) y1 = LE_point;
 		if (LE_color_valid) color = LE_color;
+		if (LE_trigger) frame_reg = LE_frame_base;
 		
 
 		if ((State == IDLE) && LE_trigger) nextState = SEND1; //add LE_trigger here later
@@ -121,7 +123,7 @@ module LineEngine(
 	
 //	wire [31:0] frame;
 	//assign frame = 32'h10400000;
-	assign af_addr_din = (steep) ? {6'b0,LE_frame_base[27:22],x,y[9:3],2'b0} : {6'b0, LE_frame_base[27:22],y,x[9:3],2'b0};
+	assign af_addr_din = (steep) ? {6'b0,frame_reg[27:22],x,y[9:3],2'b0} : {6'b0, frame_reg[27:22],y,x[9:3],2'b0};
 	
 	
 	wire [31:0] mask;
