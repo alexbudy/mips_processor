@@ -130,8 +130,9 @@ module LineEngineTestbench();
       #(Cycle);
      // drawLine(10'd0, 10'd0, 10'd1023, 10'd767, 32'h00_7F_00_00);
    //  drawLine(10'd1000, 10'd700, 10'd0, 10'd0, 32'h00_7F_00_00);
-      // drawLine(10'd500, 10'd700, 10'd0, 10'd0, 32'h00_7F_00_00);
-       drawLine(10'd0, 10'd0, 10'd300, 10'd200, 32'h00_7F_00_00);
+       //drawLine(10'd500, 10'd700, 10'd0, 10'd0, 32'h00_7F_00_00);
+      // drawLine(10'd0, 10'd0, 10'd300, 10'd200, 32'h00_7F_00_00);
+       drawLine(10'h10, 10'h20, 10'h1a, 10'h2b, 32'h00_7F_00_00);
     end
 
     task drawLine;

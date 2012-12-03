@@ -50,32 +50,125 @@ module GraphicsProcessor(
    
    //Your code goes here. GL HF.
 
+	reg[2:0] State, nextState, prevState;
 
-   
+	localparam IDLE = 3'b000;
+	localparam FETCH = 3'b001;
+	localparam READ1 = 3'b010;
+	localparam READ2 = 3'b011;
+	localparam PROCESS = 3'b100;    
+	localparam FF = 3'b101;
+	localparam LE = 3'b110;
 
-   //output assignment placeholders - delete these later
-   
-   assign LE_color = 0;
-   assign LE_point = 0;
-   
-   assign LE_color_valid = 0;
-   assign LE_x0_valid = 0;
-   assign LE_y0_valid = 0;
-   assign LE_x1_valid = 0;
-   assign LE_y1_valid = 0;
+	reg [255:0] inst_fifo; //[31:0] is the first to be executed
+	reg [3:0] inst_count;
+	
+	wire [31:0] current_inst; 
 
-   assign LE_trigger = 0;
-   assign LE_frame = 0;
-		       
-   //frame filler processor interface
-   assign FF_valid  = 0;
-   assign FF_color = 0;
-   assign FF_frame = 0;
-		       
-   //DRAM request controller interface
-   assign rdf_rd_en = 0;
-   
-   assign af_wr_en = 0;
-   assign af_addr_din = 0;
-		       
+	assign current_inst = inst_fifo[31:0];
+
+	reg [2:0] LE_inst_count_state; //0=sending color, 1=sending x0, 2=sending y0, 3=send x1, 4=send y1 (move inst on 0,1,3, trigger on 4)
+	reg [23:0] color;
+
+	wire [7:0] top_byte_inst;
+	assign top_byte_inst = current_inst[31:24];
+
+	assign af_wr_en = (State == FETCH);
+	assign rdf_wr_en = ((State == READ1) || (State == READ2));
+
+	assign af_addr_din = {10'b0, GP_CODE[23:3]};
+
+	//FF assigns
+	assign FF_color = current_inst[23:0];
+	assign FF_frame = GP_FRAME;
+	assign FF_valid = (State == FF);
+
+	//LE assigns	
+	assign LE_color = {8'h00,current_inst[23:0]};
+	assign LE_frame = GP_FRAME;
+	assign LE_color_valid = ((State == LE) && LE_inst_count_state == 0);
+	assign LE_x0_valid = ((State == LE) && LE_inst_count_state == 1);
+	assign LE_y0_valid = ((State == LE) && LE_inst_count_state == 2);
+	assign LE_x1_valid = ((State == LE) && LE_inst_count_state == 3);
+	assign LE_y1_valid = ((State == LE) && LE_inst_count_state == 4);
+	assign LE_trigger  = ((State == LE) && LE_inst_count_state == 4);
+	assign LE_point    = ((LE_inst_count_state == 1) || (LE_inst_count_state == 3)) ? current_inst[25:16] : current_inst[9:0];
+	
+
+	always@(*)begin
+		case(State)
+			IDLE:begin
+				if (GP_valid)  nextState = FETCH;
+				else nextState = IDLE;
+				
+				LE_inst_count_state <= 0;
+			end
+			FETCH:begin
+				if (af_full) nextState = FETCH;
+				else nextState = READ1;
+			end
+			READ1:begin
+				if (!rdf_valid) nextState = READ1;
+				else nextState = READ2;
+			end
+			READ2:begin 
+				if (!rdf_valid) nextState = READ2;
+				else nextState = PROCESS;
+			end
+			PROCESS:begin
+				if ((inst_count == 1 && (prevState == LE)) || inst_count == 0) nextState = FETCH;
+				else if ((LE_inst_count_state > 0) && (LE_inst_count_state < 4)) nextState = LE;
+				else if ((top_byte_inst == 8'd00) && (LE_inst_count_state == 0))  nextState = IDLE; //stop
+				else if ((top_byte_inst == 8'd01) && (FF_ready == 1) && (LE_ready == 1)) nextState = FF;
+				else if ((top_byte_inst == 8'd02) && (FF_ready == 1) && (LE_ready == 1)) nextState = LE;
+				else nextState = PROCESS;
+			end	
+			LE:begin
+				if ((LE_inst_count_state == 4) || (LE_inst_count_state == 2) || (LE_inst_count_state == 0)) nextState = PROCESS;	
+				else nextState = LE;
+			end
+			FF: begin
+				nextState = PROCESS;
+			end
+		endcase
+	end
+
+	always @ (posedge clk) begin
+		if (State == FETCH) begin
+			prevState <= FETCH;
+		end	else if (State == READ1) begin
+			prevState <= READ1;
+			inst_fifo <= {rdf_dout, 128'd0};
+		end else if (State == READ2) begin
+			prevState <= READ2;
+			inst_fifo <= {inst_fifo[255:128] ,rdf_dout};
+			inst_count <= 4'd8; //? semi resolved
+		end	else if (State == PROCESS) begin
+			prevState <= PROCESS;
+
+			if ((prevState == LE)||(prevState ==FF))begin
+				inst_fifo <= (inst_fifo >> 32);
+				inst_count <= inst_count - 1;
+			end
+
+			if (LE_inst_count_state == 5) LE_inst_count_state <= 0;
+			else LE_inst_count_state <= LE_inst_count_state;
+				
+		end	else if (State == FF) begin
+			prevState <= FF;
+		end	else if (State == LE) begin
+			prevState <= LE;
+			LE_inst_count_state <= LE_inst_count_state + 1;
+		end else if (State == IDLE) begin
+			inst_count <= 0;
+		end
+	end
+
+	always@(posedge clk)begin
+		if(rst)
+			State <= IDLE;
+		else
+			State <= nextState;
+	end
+
 endmodule

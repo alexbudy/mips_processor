@@ -25,7 +25,7 @@ module LineEngine(
   output [15:0]         wdf_mask_din,
   output                wdf_wr_en,
 
-  input [31:0] 		LE_frame_base
+  input [31:0] 			LE_frame_base
 );
 
 	localparam IDLE = 2'b00;
@@ -37,7 +37,7 @@ module LineEngine(
 
     	// Implement Bresenham's line drawing algorithm here!
 	reg [9:0] x, y;
-	wire [31:0] color;
+	reg [31:0] color;
 	
 	//reg[9:0] x0,x1,y0,y1,newx0, newx1, newy0, newy1, deltax, deltay, error, ystep;
 	reg[9:0] x0, x1, y0, y1, error, ystep;
@@ -62,25 +62,15 @@ module LineEngine(
 		.deltay(deltay)	
 	);
 	
-	always @ (posedge clk) begin
-		//if (LE_x0_valid) x0 = LE_point;
-		//if (LE_x1_valid) x1 = LE_point;
-		//if (LE_y0_valid) y0 = LE_point;
-		//if (LE_y1_valid) y1 = LE_point;
-		//if (LE_color_valid) color = LE_color;
-
-	end
-
-	
 	always@(*) begin
-		//if (LE_x0_valid) x0 = LE_point;
-		//if (LE_x1_valid) x1 = LE_point;
-		//if (LE_y0_valid) y0 = LE_point;
-		//if (LE_y1_valid) y1 = LE_point;
-		//if (LE_color_valid) color = LE_color;
+		if (LE_x0_valid) x0 = LE_point;
+		if (LE_x1_valid) x1 = LE_point;
+		if (LE_y0_valid) y0 = LE_point;
+		if (LE_y1_valid) y1 = LE_point;
+		if (LE_color_valid) color = LE_color;
 		
 
-		if ((State == IDLE)) nextState = SEND1; //add LE_trigger here later
+		if ((State == IDLE) && LE_trigger) nextState = SEND1; //add LE_trigger here later
 		else if ((State == SEND1) && ~af_full && ~wdf_full) nextState = SEND2;
 		else if ((State == SEND2) && ~wdf_full) nextState = UPDATE;
 		else if ((State == UPDATE) && (x >= newx1)) nextState = IDLE;
@@ -88,7 +78,6 @@ module LineEngine(
 		else nextState = State;
 	end
 
-	assign color = 32'h00ffffff;
 	assign wdf_din = {color,color,color,color};
 	assign error_init = (deltax >> 1);
 	
@@ -101,10 +90,10 @@ module LineEngine(
 			y <= newy0;
 			
 			//TEMP=remove later
-			x0 <= 10'd0;
-			y0 <= 10'd0;
-			y1 <= 10'd200;
-			x1 <= 10'd300;
+		//	x0 <= 10'd0;
+		//	y0 <= 10'd0;
+		//	y1 <= 10'd200;
+		//	x1 <= 10'd300;
 		end	
 		else 
 			State <= nextState;
@@ -130,9 +119,9 @@ module LineEngine(
 			end
 	end
 	
-	wire [31:0] frame;
-	assign frame = 32'h10400000;
-	assign af_addr_din = (steep) ? {6'b0,frame[27:22],x,y[9:3],2'b0} : {6'b0, frame[27:22],y,x[9:3],2'b0};
+//	wire [31:0] frame;
+	//assign frame = 32'h10400000;
+	assign af_addr_din = (steep) ? {6'b0,LE_frame_base[27:22],x,y[9:3],2'b0} : {6'b0, LE_frame_base[27:22],y,x[9:3],2'b0};
 	
 	
 	wire [31:0] mask;
@@ -141,7 +130,7 @@ module LineEngine(
 	assign af_wr_en = (State == SEND1);
 	assign wdf_wr_en = ((State == SEND1) || (State == SEND2));
 
-    	assign LE_ready = (State == IDLE);
+    assign LE_ready = (State == IDLE);
 
 endmodule
 
