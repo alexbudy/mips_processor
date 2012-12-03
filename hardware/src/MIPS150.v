@@ -86,7 +86,6 @@ assign UARTout_Z = UARTout_YZ;
 assign RT_shifted_Z = RT_shifted_YZ;
 
 
-
 RegFile RegFile(                            
             .clk(clk),                       
             .we(RegWrite_Z & ~stall),

@@ -68,13 +68,13 @@ module GraphicsProcessor(
 	assign current_inst = inst_fifo[31:0];
 
 	reg [2:0] LE_inst_count_state; //0=sending color, 1=sending x0, 2=sending y0, 3=send x1, 4=send y1 (move inst on 0,1,3, trigger on 4)
-	reg [23:0] color;
+	reg [23:0] color; //useless!
 
 	wire [7:0] top_byte_inst;
 	assign top_byte_inst = current_inst[31:24];
 
 	assign af_wr_en = (State == FETCH);
-	assign rdf_wr_en = ((State == READ1) || (State == READ2));
+	assign rdf_rd_en = ((State == READ1) || (State == READ2));
 
 
 	reg [30:0] addr_start; 
