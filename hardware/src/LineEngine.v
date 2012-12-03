@@ -62,16 +62,17 @@ module LineEngine(
 		.deltax(deltax),	
 		.deltay(deltay)	
 	);
+
+	always @ (posedge clk) begin
+		if (LE_x0_valid) x0 <= LE_point;
+		else if (LE_x1_valid) x1 <= LE_point;
+		else if (LE_y0_valid) y0 <= LE_point;
+		else if (LE_y1_valid) y1 <= LE_point;
+		else if (LE_color_valid) color <= LE_color;
+		else if (LE_trigger) frame_reg <= LE_frame_base;
+	end
 	
 	always@(*) begin
-		if (LE_x0_valid) x0 = LE_point;
-		if (LE_x1_valid) x1 = LE_point;
-		if (LE_y0_valid) y0 = LE_point;
-		if (LE_y1_valid) y1 = LE_point;
-		if (LE_color_valid) color = LE_color;
-		if (LE_trigger) frame_reg = LE_frame_base;
-		
-
 		if ((State == IDLE) && LE_trigger) nextState = SEND1; //add LE_trigger here later
 		else if ((State == SEND1) && ~af_full && ~wdf_full) nextState = SEND2;
 		else if ((State == SEND2) && ~wdf_full) nextState = UPDATE;
