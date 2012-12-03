@@ -175,7 +175,7 @@ module GraphicsProcessor(
 		end else if (State == IDLE) begin
 			inst_count <= 0;
 			LE_inst_count_state <= 0;
-			addr_start <= {6'b000000, GP_CODE[25:1]};
+			addr_start <= {6'b000000, GP_CODE[27:5],{2'b00}};
 		end
 	end
 

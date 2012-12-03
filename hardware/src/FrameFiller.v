@@ -49,33 +49,27 @@ module FrameFiller(//system:
 		else  nextState = State;
 	end	
 	
-	assign overflow = (x >= 64 && y >= 2);
+	assign overflow = (x >= 792 && y >= 599);
 
 	always @(posedge clk) begin
 		if (rst) begin
 			x <= 10'b0;			
 			y <= 10'b0;			
 			State <= START;
-	//		overflow <= 0;
 		end
 		else begin
 			State <= nextState;
 			if (State == IDLE) begin
 				if (!wdf_full) begin
-					//if (x < 792) begin
-					if (x < 64) begin
+					if (x < 792) begin
 						x <= x + 10'd8;
-	//					overflow <= 0;
 					end
-					//else if (y < 599) begin
-					else if (y < 2) begin
+					else if (y < 599) begin
 						x <= 10'd0;
 						y <= y + 10'd1;
-	//					overflow <= 0;
 					end else begin
 						x <= 10'b0;
 						y <= 10'b0;
-	//					overflow <= 1;
 					end
 				end
 			end else if (State == PUSH) begin //PUSH = first state, IDLE 2nd state
