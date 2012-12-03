@@ -87,16 +87,16 @@ assign RT_shifted_Z = RT_shifted_YZ;
 
 
 // ChipScope components:
-// wire [35:0] chipscope_control;
-// chipscope_icon icon(
-// .CONTROL0(chipscope_control)
-// ) /* synthesis syn_noprune=1 */;
-// chipscope_ila ila(
-// .CONTROL(chipscope_control),
-// .CLK(clk),
-// .DATA({rst, stall, PCout_X, inst_X, UARTwrite, InterruptHandled, InterruptRequest, prevDataInReady, DataInReady, prevDataOutValid, DataOutValid, wd, a3_Z, ALU_output, ALU_out_Y, A, B, RT, JBout}),
-// .TRIG0( InterruptHandled)
-//) /* synthesis syn_noprune=1 */;
+ wire [35:0] chipscope_control;
+ chipscope_icon icon(
+ .CONTROL0(chipscope_control)
+ ) /* synthesis syn_noprune=1 */;
+ chipscope_ila ila(
+ .CONTROL(chipscope_control),
+ .CLK(clk),
+ .DATA({rst, stall, ALU_out_Y, gp_frame, gp_code, gp_valid, we_d}),
+ .TRIG0( InterruptHandled)
+) /* synthesis syn_noprune=1 */;
 
 
 RegFile RegFile(                            
@@ -256,9 +256,9 @@ always @(posedge clk)begin
 			prevDataInReady <= DataInReady;
 			PCoutreg <= PC_X;
 			
-			GP_frame_reg <= (ALU_out_Y == 32'h80000040 && (we_d != 4'b0000) && !stall) ? RT : GP_frame_reg;
-			GP_code_reg <= (ALU_out_Y == 32'h80000030 && (we_d != 4'b0000) && !stall) ? RT : GP_frame_reg;
-			GP_valid_reg <= (ALU_out_Y == 32'h80000030 && (we_d != 4'b0000));
+			GP_frame_reg <= (ALU_out_Y == 32'h80000040 && (LdStCtrl_Y == 3'b111)) ? RT : GP_frame_reg;
+			GP_code_reg <= (ALU_out_Y == 32'h80000030 && (LdStCtrl_Y == 3'b111)) ? RT : GP_frame_reg;
+			GP_valid_reg <= (ALU_out_Y == 32'h80000030 && (LdStCtrl_Y == 3'b111));
 		end
 	end
 end
