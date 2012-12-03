@@ -240,9 +240,9 @@ module ml505top
     .icache_din  (icache_din  ),
     .dcache_dout (dcache_dout ),
     .instruction (instruction ),
-    .gp_code(cpu_gp_code),
-    .gp_frame(cpu_gp_frame),
-    .gp_valid(cpu_gp_valid),
+    .gp_code(gp_code),
+    .gp_frame(gp_frame),
+    .gp_valid(gp_valid),
     .frame_interrupt(frame_interrupt)
   ); //add GP_CODE, GP_FRAME, and GP_valid io here and pixel feeder interrupt
 
