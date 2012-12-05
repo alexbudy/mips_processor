@@ -93,7 +93,7 @@ module GraphicsProcessor(
 	assign LE_y0_valid = ((State == LE) && LE_inst_count_state == 2);
 	assign LE_x1_valid = ((State == LE) && LE_inst_count_state == 3);
 	assign LE_y1_valid = ((State == LE) && LE_inst_count_state == 4);
-	assign LE_trigger  = ((State == LE) && LE_inst_count_state == 4);
+	assign LE_trigger  = (LE_inst_count_state == 5);
 	assign LE_point    = ((LE_inst_count_state == 1) || (LE_inst_count_state == 3)) ? current_inst[25:16] : current_inst[9:0];
 	
 
@@ -117,6 +117,7 @@ module GraphicsProcessor(
 			end
 			PROCESS:begin
 				if ((inst_count == 1 && (prevState == LE)) || inst_count == 0) nextState = FETCH;
+				else if (LE_inst_count_state == 5) nextState = PROCESS; //line engine not done drawing
 				else if ((LE_inst_count_state > 0) && (LE_inst_count_state < 4)) nextState = LE;
 				else if ((top_byte_inst == 8'd00) && (LE_inst_count_state == 0))  nextState = IDLE; //stop
 				else if ((top_byte_inst == 8'd01) && (FF_ready == 1) && (LE_ready == 1)) nextState = FF;

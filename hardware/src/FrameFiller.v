@@ -29,6 +29,7 @@ module FrameFiller(//system:
 	reg [1:0] State, nextState;
 	wire overflow;
 	reg [23:0] color_reg;
+	reg [31:0] frame_reg;
 
 // ChipScope components:
 // wire [35:0] chipscope_control;
@@ -78,7 +79,10 @@ module FrameFiller(//system:
 				//overflow <= 0;
 	//			overflow <= overflow;
 			end else  begin //START
-				if (valid) color_reg <= color;
+				if (valid) begin
+					 color_reg <= color;
+					 frame_reg <= FF_frame_base;
+				end
 				x <= 10'b0;
 				y <= 10'b0;
 	//			overflow <= 0;
@@ -93,5 +97,5 @@ module FrameFiller(//system:
   	assign ready     = (State == START);
 	assign wdf_din   = {8'd0, color_reg, 8'd0, color_reg, 8'd0, color_reg, 8'd0, color_reg};
 	assign wdf_mask_din = 16'd0;
-	assign af_addr_din = {6'b000000, FF_frame_base[27:22], y, x[9:3], 2'b00};
+	assign af_addr_din = {6'b000000, frame_reg[27:22], y, x[9:3], 2'b00};
 endmodule

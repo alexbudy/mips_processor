@@ -61,6 +61,7 @@ wire [31:0]  ALU_output, COP_out;
 reg [31:0] GP_frame_reg, GP_code_reg;
 reg GP_valid_reg;
 
+reg [31:0] frame_count;
 
 
 assign InterruptHandled = !stall & InterruptRequest & (JumpBranch_Y == 3'b000 & 
@@ -221,6 +222,8 @@ always @(posedge clk)begin
 			GP_frame_reg <= 32'd0;
 			GP_code_reg <= 32'd0;
 			GP_valid_reg <= 1'd0;
+			
+			frame_count <= 0;
 	end
 	else begin
 		if (!stall) begin
@@ -246,6 +249,8 @@ always @(posedge clk)begin
 			GP_frame_reg <= (ALU_out_Y == 32'h80000040 && (LdStCtrl_Y == 3'b111)) ? RT : GP_frame_reg;
 			GP_code_reg <= (ALU_out_Y == 32'h80000030 && (LdStCtrl_Y == 3'b111)) ? RT : GP_frame_reg;
 			GP_valid_reg <= (ALU_out_Y == 32'h80000030 && (LdStCtrl_Y == 3'b111));
+
+			frame_count <= frame_count + frame_interrupt;
 		end
 	end
 end
@@ -335,6 +340,6 @@ assign gp_frame = GP_frame_reg;
 assign gp_valid = GP_valid_reg; 
 
 //stage three
-assign wd_Z = (MemToReg_Z ? (ALU_out_Z[31:28] == 4'b1000 ? UARTout_Z : LLout) : ALU_out_Z);
+assign wd_Z = (MemToReg_Z ? ((ALU_out_Z == 32'h80000050) ? frame_count : (ALU_out_Z[31:28] == 4'b1000 ? UARTout_Z : LLout)) : ALU_out_Z);
 
 endmodule
