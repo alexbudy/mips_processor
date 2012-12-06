@@ -41,8 +41,8 @@ int main(){
 		if (FRAME_ODD == 0) {
 			cmd_start = cmd;
 
-			fill_frame(0x0000ff00);
-			draw_line(0,0, 100, 150, 0x00ffffff );					
+			fill_frame(0x00ffffff);
+			draw_line(210, 320, 66, 180, 0x00ff0000);					
 
 			*cmd_start = 0x00000000; //store the end command
 			GP_FRAME_REG = frame1;
@@ -72,9 +72,13 @@ void fill_frame(unsigned int color) {
 }
 
 void draw_line(int x0, int y0, int x1, int y1, unsigned int color) {
+	*cmd_start = (0x02000000 + color);
+	cmd_start++;
+	*cmd_start = (0x02000000 + (x0 << 16) + y0);
+	cmd_start++;
 
-
-
+	*cmd_start = (0x02000000 + (x1 << 16) + y1);
+	cmd_start++;
 }
 
 void game(w,a,s,d){ //up left down right
