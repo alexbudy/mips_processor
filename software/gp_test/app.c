@@ -1,4 +1,4 @@
-#define SECONDS   (*((volatile unsigned int*)0x1f0000bc) & 0xff)
+#define SECONDS   (*((volatile unsigned int*)0x1f0000bc))
 #define frame1	0x10400000
 #define frame2	0x10800000
 #define STATE     (*((volatile unsigned int*)0x1f0000c0))
@@ -11,8 +11,10 @@
 
 #define STATE     (*((volatile unsigned int*)0x1f0000c0))
 
+
 int div(int a, int b);
 int mod(int a, int b);
+int mult(int a, int b);
 void send_time(char c);
 void send_byte(char b);
 void draw_line(unsigned int x0,unsigned int y0,unsigned int x1, unsigned int y1, unsigned int color);
@@ -25,17 +27,30 @@ void v100M();
 void V100M();
 void addone();
 void init_isr();
+void draw_number(int x0, int y0, int num, unsigned int color);
 
 unsigned int* cmd_start;
 int pause;
 int diff;
 int tstart, tend;
 
-int x;
+int x0, y0, x1, y1;
+int pend_state;
+
+void print_time();
 
 int main(){
 
 	pause = 0;
+
+	x0 = 400;	
+	y0 = 230;	
+	x1 = 400;	
+	y1 = 180;	
+
+	int pend_state = 0; //0 = inc x0, 1 = dec y0, 2 = dec x0, 3 = inc y0
+	
+	int sec = 0;
 	
 	init_isr();
 	
@@ -51,9 +66,6 @@ int main(){
 	
 	//now we know we are at top of buffer 0
 	
-
-	x = 0;	
-
 	int cur_frame = FRAME_ODD;
 	while(1)  {
 		if (FRAME_ODD == 1) {
@@ -85,7 +97,6 @@ int main(){
 void fill_frame(unsigned int color) {
 	*cmd_start = (0x01000000 + (color & 0x00ffffff));
 	cmd_start++;
-	
 }
 
 void draw_line(unsigned int x0,unsigned int y0,unsigned int x1,unsigned int y1, unsigned int color) {
@@ -93,16 +104,235 @@ void draw_line(unsigned int x0,unsigned int y0,unsigned int x1,unsigned int y1, 
 	cmd_start++;
 	*cmd_start = (0x00000000 + (x0 << 16) + y0);
 	cmd_start++;
-
 	*cmd_start = (0x00000000 + (x1 << 16) + y1);
 	cmd_start++;
 }
 
 void game() {
 	fill_frame(0x00ffffff);
-	draw_line(x++, 320, 66, 180, 0x00ff0000);					
+
+	if (pend_state == 0) x0++;   
+	else if (pend_state == 1) y0--;   
+	else if (pend_state == 2) x0--;   
+	else if (pend_state == 3) y0++;   
+
+	if ((x0 >= 450) & (pend_state == 0)) pend_state = 1;
+	else if ((y0 <= 130) & (pend_state == 1)) pend_state = 2;
+	else if ((x0 <= 350) & (pend_state == 2)) pend_state = 3;
+	else if ((y0 >= 230) & (pend_state == 0)) pend_state = 0;
+		
+	draw_line(x0, y0, x1, y1, 0x00ff0000);					
+	print_time();
+}
+
+void print_time() {
+	if (SECONDS > 999) SECONDS = 0;
+
+	int seconds = SECONDS;
+	
+	int top = div(SECONDS, 100);
+	int lol = mult(100, top);
+	int lol2 = SECONDS - lol;
+	int mid = div(lol2, 10);
+	int bot = mod(SECONDS, 10);
+
+	draw_number(325, 450, top, 0xff);
+	draw_number(375, 450, mid, 0xff);
+	draw_number(425, 450, bot, 0xff);
+}
+
+//each number starts at x0, y0, top corner. numbers should be centered in box
+//50 width, 80 height for now
+void draw_number(int x0, int y0, int num, unsigned int color) {
+	if (num == 0) {
+		//left vert line
+		draw_line(x0+4, y0+6, x0+4, y0+74, color);
+		draw_line(x0+5, y0+5, x0+5, y0+75, color);
+		draw_line(x0+6, y0+6, x0+6, y0+74, color);
+
+		//right vert line
+		draw_line(x0+44, y0+6, x0+44, y0+74, color);
+		draw_line(x0+45, y0+5, x0+45, y0+75, color);
+		draw_line(x0+46, y0+6, x0+46, y0+74, color);
+
+		//top horizontal line
+		draw_line(x0+5, y0+6, x0+45, y0+6, color);
+		draw_line(x0+5, y0+5, x0+45, y0+5, color);
+		draw_line(x0+5, y0+4, x0+45, y0+4, color);
+
+		//bottom horizontal line
+		draw_line(x0+5, y0+74, x0+45, y0+74, color);
+		draw_line(x0+5, y0+75, x0+45, y0+75, color);
+		draw_line(x0+5, y0+76, x0+45, y0+76, color);
+	} else if (num == 1) {
+		draw_line(x0+24, y0+5, x0+24, y0+75, color);
+		draw_line(x0+23, y0+6, x0+23, y0+74, color);
+		draw_line(x0+25, y0+6, x0+25, y0+74, color);
+	} else if (num == 2) {
+		//top horizontal line
+		draw_line(x0+5, y0+6, x0+45, y0+6, color);
+		draw_line(x0+5, y0+5, x0+45, y0+5, color);
+		draw_line(x0+5, y0+4, x0+45, y0+4, color);
+
+		//middle horizontal line
+		draw_line(x0+5, y0+39, x0+45, y0+39, color);
+		draw_line(x0+5, y0+40, x0+45, y0+40, color);
+		draw_line(x0+6, y0+41, x0+45, y0+41, color);
+
+		//bottom horizontal line
+		draw_line(x0+5, y0+74, x0+45, y0+74, color);
+		draw_line(x0+5, y0+75, x0+45, y0+75, color);
+		draw_line(x0+5, y0+76, x0+45, y0+76, color);
+
+		//right vert top-line
+		draw_line(x0+44, y0+6, x0+44, y0+40, color);
+		draw_line(x0+45, y0+5, x0+45, y0+41, color);
+		draw_line(x0+46, y0+6, x0+46, y0+40, color);
+
+		//left vert bot-line
+		draw_line(x0+4, y0+40, x0+4, y0+74, color);
+		draw_line(x0+5, y0+41, x0+5, y0+75, color);
+		draw_line(x0+6, y0+40, x0+6, y0+74, color);
+	} else if (num == 3) {
+		//right vert line
+		draw_line(x0+44, y0+6, x0+44, y0+74, color);
+		draw_line(x0+45, y0+5, x0+45, y0+75, color);
+		draw_line(x0+46, y0+6, x0+46, y0+74, color);
+
+		//top horizontal line
+		draw_line(x0+5, y0+6, x0+45, y0+6, color);
+		draw_line(x0+5, y0+5, x0+45, y0+5, color);
+		draw_line(x0+5, y0+4, x0+45, y0+4, color);
+
+		//bottom horizontal line
+		draw_line(x0+5, y0+74, x0+45, y0+74, color);
+		draw_line(x0+5, y0+75, x0+45, y0+75, color);
+		draw_line(x0+5, y0+76, x0+45, y0+76, color);
+
+		//middle horizontal line
+		draw_line(x0+10, y0+39, x0+45, y0+39, color);
+		draw_line(x0+10, y0+40, x0+45, y0+40, color);
+		draw_line(x0+10, y0+41, x0+45, y0+41, color);
+	} else if (num == 4) {
+		//right vert line
+		draw_line(x0+44, y0+6, x0+44, y0+74, color);
+		draw_line(x0+45, y0+5, x0+45, y0+75, color);
+		draw_line(x0+46, y0+6, x0+46, y0+74, color);
+
+		//middle horizontal line
+		draw_line(x0+5, y0+39, x0+45, y0+39, color);
+		draw_line(x0+5, y0+40, x0+45, y0+40, color);
+		draw_line(x0+6, y0+41, x0+45, y0+41, color);
+
+		//left vert top-line
+		draw_line(x0+4, y0+40, x0+4, y0+6, color);
+		draw_line(x0+5, y0+41, x0+5, y0+5, color);
+		draw_line(x0+6, y0+40, x0+6, y0+6, color);
+	} else if (num == 5) {
+		//top horizontal line
+		draw_line(x0+5, y0+6, x0+45, y0+6, color);
+		draw_line(x0+5, y0+5, x0+45, y0+5, color);
+		draw_line(x0+5, y0+4, x0+45, y0+4, color);
+
+		//middle horizontal line
+		draw_line(x0+5, y0+39, x0+45, y0+39, color);
+		draw_line(x0+5, y0+40, x0+45, y0+40, color);
+		draw_line(x0+5, y0+41, x0+45, y0+41, color);
+
+		//bottom horizontal line
+		draw_line(x0+5, y0+74, x0+45, y0+74, color);
+		draw_line(x0+5, y0+75, x0+45, y0+75, color);
+		draw_line(x0+5, y0+76, x0+45, y0+76, color);
+
+		//right vert bot-line
+		draw_line(x0+44, y0+40, x0+44, y0+74, color);
+		draw_line(x0+45, y0+39, x0+45, y0+75, color);
+		draw_line(x0+46, y0+40, x0+46, y0+74, color);
+
+		//left vert top-line
+		draw_line(x0+4, y0+40, x0+4, y0+6, color);
+		draw_line(x0+5, y0+41, x0+5, y0+5, color);
+		draw_line(x0+6, y0+40, x0+6, y0+6, color);
+	} else if (num == 6) {
+		//left vert line
+		draw_line(x0+4, y0+6, x0+4, y0+74, color);
+		draw_line(x0+5, y0+5, x0+5, y0+75, color);
+		draw_line(x0+6, y0+6, x0+6, y0+74, color);
+
+		//right vert bot-line
+		draw_line(x0+44, y0+40, x0+44, y0+74, color);
+		draw_line(x0+45, y0+39, x0+45, y0+75, color);
+		draw_line(x0+46, y0+40, x0+46, y0+74, color);
+
+		//bottom horizontal line
+		draw_line(x0+5, y0+74, x0+45, y0+74, color);
+		draw_line(x0+5, y0+75, x0+45, y0+75, color);
+		draw_line(x0+5, y0+76, x0+45, y0+76, color);
+
+		//middle horizontal line
+		draw_line(x0+5, y0+39, x0+45, y0+39, color);
+		draw_line(x0+5, y0+40, x0+45, y0+40, color);
+		draw_line(x0+5, y0+41, x0+45, y0+41, color);
+	} else if (num == 7) {
+		//right vert line
+		draw_line(x0+44, y0+6, x0+44, y0+74, color);
+		draw_line(x0+45, y0+5, x0+45, y0+75, color);
+		draw_line(x0+46, y0+6, x0+46, y0+74, color);
+
+		//top horizontal line
+		draw_line(x0+5, y0+6, x0+45, y0+6, color);
+		draw_line(x0+5, y0+5, x0+45, y0+5, color);
+		draw_line(x0+5, y0+4, x0+45, y0+4, color);
+	} else if (num == 8) {
+		//left vert line
+		draw_line(x0+4, y0+6, x0+4, y0+74, color);
+		draw_line(x0+5, y0+5, x0+5, y0+75, color);
+		draw_line(x0+6, y0+6, x0+6, y0+74, color);
+
+		//right vert line
+		draw_line(x0+44, y0+6, x0+44, y0+74, color);
+		draw_line(x0+45, y0+5, x0+45, y0+75, color);
+		draw_line(x0+46, y0+6, x0+46, y0+74, color);
+
+		//top horizontal line
+		draw_line(x0+5, y0+6, x0+45, y0+6, color);
+		draw_line(x0+5, y0+5, x0+45, y0+5, color);
+		draw_line(x0+5, y0+4, x0+45, y0+4, color);
+
+		//bottom horizontal line
+		draw_line(x0+5, y0+74, x0+45, y0+74, color);
+		draw_line(x0+5, y0+75, x0+45, y0+75, color);
+		draw_line(x0+5, y0+76, x0+45, y0+76, color);
+
+		//middle horizontal line
+		draw_line(x0+5, y0+39, x0+45, y0+39, color);
+		draw_line(x0+5, y0+40, x0+45, y0+40, color);
+		draw_line(x0+5, y0+41, x0+45, y0+41, color);
+	} else if (num == 9) {
+		//top horizontal line
+		draw_line(x0+5, y0+6, x0+45, y0+6, color);
+		draw_line(x0+5, y0+5, x0+45, y0+5, color);
+		draw_line(x0+5, y0+4, x0+45, y0+4, color);
+
+		//right vert line
+		draw_line(x0+44, y0+6, x0+44, y0+74, color);
+		draw_line(x0+45, y0+5, x0+45, y0+75, color);
+		draw_line(x0+46, y0+6, x0+46, y0+74, color);
+
+		//middle horizontal line
+		draw_line(x0+5, y0+39, x0+45, y0+39, color);
+		draw_line(x0+5, y0+40, x0+45, y0+40, color);
+		draw_line(x0+6, y0+41, x0+45, y0+41, color);
+
+		//left vert top-line
+		draw_line(x0+4, y0+40, x0+4, y0+6, color);
+		draw_line(x0+5, y0+41, x0+5, y0+5, color);
+		draw_line(x0+6, y0+40, x0+6, y0+6, color);
+
+	}
 
 }
+
 
 void check_state(){ //up left down right
 	if (STATE == 0x72) {
@@ -202,7 +432,7 @@ void init_isr() {
 // a/b, floored
 int div(int a, int b) {
 	int s = 0;
-	while (a > b) {
+	while (a >= b) {
 		s++;
 		a = a-b;
 	}
@@ -215,6 +445,16 @@ int mod(int a, int b) {
 		a = a - b;
 	}
 	return a;
+}
+
+//better to have b < a
+int mult(int a, int b) {
+	int ret = 0;
+	while (b>=1) {
+		ret = ret + a;
+		b = b - 1;
+	}
+	return ret;
 }
 
 void r100M() {
