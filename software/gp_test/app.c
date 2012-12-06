@@ -21,6 +21,32 @@ unsigned int* cmd_start;
 
 int main(){
 
+/*	
+	asm("li $t7, 0x01ff00ff");
+	asm("li $s1, 0x80000040");
+	asm("li $s2, 0x80000030");
+	
+
+	asm("li $t1, 0x10400000 ");
+
+	asm("li $t2, 0x10000000 ");
+	
+	asm("li $t4, 0x0200ff00 ");
+	asm("li $t5, 0x00000000  ");
+	asm("li $t6, 0x00ff0150 ");
+	
+	asm("sw $t1, 0($s1) ");
+
+	asm("sw $t7, 0($t2) ");
+
+	asm("sw $t4, 4($t2) ");
+	asm("sw $t5, 8($t2) ");
+	asm("sw $t6, 12($t2) ");
+	asm("sw $0, 16($t2) ");
+	asm("nop ");
+	asm("sw 	$t2, 0($s2)");
+*/	
+
 	while (FRAME_ODD != 1) {
 		asm("nop");
 		asm("nop");
@@ -29,8 +55,8 @@ int main(){
 		asm("nop");
 		asm("nop");
 	}
+
 	
-		
 	//now we know we are at top of buffer 0
 	
 
@@ -63,7 +89,6 @@ int main(){
 		while (cur_frame == FRAME_ODD) ; //spin until we are cleared
 		cur_frame = FRAME_ODD;
 	}
-
 	return 0;
 }
 
@@ -76,10 +101,10 @@ void fill_frame(unsigned int color) {
 void draw_line(unsigned int x0,unsigned int y0,unsigned int x1,unsigned int y1, unsigned int color) {
 	*cmd_start = (0x02000000 + (color & 0x00ffffff));
 	cmd_start++;
-	*cmd_start = (0x02000000 + (x0 << 16) + y0);
+	*cmd_start = (0x00000000 + (x0 << 16) + y0);
 	cmd_start++;
 
-	*cmd_start = (0x02000000 + (x1 << 16) + y1);
+	*cmd_start = (0x00000000 + (x1 << 16) + y1);
 	cmd_start++;
 }
 
