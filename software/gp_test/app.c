@@ -11,7 +11,6 @@
 
 #define STATE     (*((volatile unsigned int*)0x1f0000c0))
 
-
 int div(int a, int b);
 int mod(int a, int b);
 int mult(int a, int b);
@@ -20,19 +19,28 @@ void send_byte(char b);
 void draw_line(unsigned int x0,unsigned int y0,unsigned int x1, unsigned int y1, unsigned int color);
 void fill_frame(unsigned int color);
 void check_state();
-void game();
+void game(int x,int y);
 void r100M();
 void R100M();
 void v100M();
 void V100M();
 void addone();
 void init_isr();
+void drawborder();
+void moveshot(int x_shot, int y_shot);
 void draw_number(int x0, int y0, int num, unsigned int color);
+void alex_game();
 
 unsigned int* cmd_start;
 int pause;
 int diff;
 int tstart, tend;
+int xlength = 20;
+int ylength = 20;
+
+int x, y;
+int x_shot, y_shot;
+int validshot;
 
 int x0, y0, x1, y1;
 int pend_state;
@@ -52,8 +60,6 @@ int main(){
 	pend_state = 0; //0 = inc x0, 1 = dec y0, 2 = dec x0, 3 = inc y0
 	color_clock = 0x0000ff00;
 	
-	int sec = 0;
-	
 	init_isr();
 	
 	while (FRAME_ODD != 1) {
@@ -68,14 +74,19 @@ int main(){
 	
 	//now we know we are at top of buffer 0
 	
+
+	x = 400;	
+	y = 300;
 	int cur_frame = FRAME_ODD;
 	while(1)  {
 		if (FRAME_ODD == 1) {
 			cmd_start = cmd;
 			check_state();			
-			
-			if (!pause) game();			
-
+	
+			if (!pause){
+				 game(x,y);			
+				alex_game();
+			}
 			*cmd_start = 0x00000000; //store the end command
 			GP_FRAME_REG = frame1;
 			GP_CODE_REG = 0x10010000;
@@ -83,8 +94,10 @@ int main(){
 			cmd_start = cmd;
 			check_state();			
 			
-			if (!pause) game();			
-
+			if (!pause) {
+					game(x,y);			
+					alex_game();
+					}
 			*cmd_start = 0x00000000; //store the end command
 			GP_FRAME_REG = frame2;
 			GP_CODE_REG = 0x10010000;
@@ -99,6 +112,7 @@ int main(){
 void fill_frame(unsigned int color) {
 	*cmd_start = (0x01000000 + (color & 0x00ffffff));
 	cmd_start++;
+	
 }
 
 void draw_line(unsigned int x0,unsigned int y0,unsigned int x1,unsigned int y1, unsigned int color) {
@@ -106,13 +120,21 @@ void draw_line(unsigned int x0,unsigned int y0,unsigned int x1,unsigned int y1, 
 	cmd_start++;
 	*cmd_start = (0x00000000 + (x0 << 16) + y0);
 	cmd_start++;
+
 	*cmd_start = (0x00000000 + (x1 << 16) + y1);
 	cmd_start++;
 }
 
-void game() {
-	fill_frame(0x00ffffff);
+void moveshot(x,y){
+	if ((x_shot + 1 + 5 + 10 < 800) & (y_shot - 1 - 5 - 10 > 0)){
+		x_shot = x_shot + 1;
+		y_shot = y_shot - 1;	
+	}else{
+		validshot = 0;
+	}
+}
 
+void alex_game() {
 	if (pend_state == 0) x0 = x0 + 1;   
 	else if (pend_state == 1) y0 = y0 - 1;   
 	else if (pend_state == 2) x0 = x0 - 1;   
@@ -127,21 +149,30 @@ void game() {
 	color_clock += 0xf;
 	print_time();
 }
+void game(x,y){ //up left down right
+	//make target of size 50*50
+			fill_frame(0x00ffffff);
+			drawborder();
+	draw_line(x-1-xlength,y ,x+xlength,y, 0x000000ff);
+	draw_line(x,y-1-ylength ,x,y+ylength, 0x000000ff);
+	moveshot(x_shot,y_shot);
+	if( validshot){
+	draw_line(x_shot,y_shot,x_shot+ 5, y_shot - 5,0xdd0000);
+	}
+}
+void drawborder(){
+	draw_line(10,10,10,590,0);
+	draw_line(11,10,11,590,0); //left
 
-void print_time() {
-	if (SECONDS > 999) SECONDS = 0;
+	draw_line(10,590,790,590,0);
+	draw_line(10,589,790,589,0); //bottom
 
-	int seconds = SECONDS;
-	
-	int top = div(SECONDS, 100);
-	int lol = mult(100, top);
-	int lol2 = SECONDS - lol;
-	int mid = div(lol2, 10);
-	int bot = mod(SECONDS, 10);
+	draw_line(790,590,790,10,0);
+	draw_line(789,590,789,10,0); //right
 
-	draw_number(325, 450, top, 0xff);
-	draw_number(375, 450, mid, 0xff);
-	draw_number(425, 450, bot, 0xff);
+	draw_line(10,10,790,10,0);
+	draw_line(10,11,790,11,0);//top
+
 }
 
 //each number starts at x0, y0, top corner. numbers should be centered in box
@@ -335,10 +366,89 @@ void draw_number(int x0, int y0, int num, unsigned int color) {
 	}
 
 }
+void print_time() {
+	if (SECONDS > 999) SECONDS = 0;
 
+	int seconds = SECONDS;
+	
+	int top = div(seconds, 100);
+	//int lol = mult(100, top);
+	//int lol2 = seconds - lol;
+	while (seconds >= 100) {	
+		seconds  = seconds - 100; };
+	int mid = div(seconds, 10);
+	int bot = mod(seconds, 10);
+
+	draw_number(325, 450, top, 0xff);
+	draw_number(375, 450, mid, 0xff);
+	draw_number(425, 450, bot, 0xff);
+}
 
 void check_state(){ //up left down right
-	if (STATE == 0x72) {
+	if (STATE == 0x77) {
+		send_byte('w');
+		send_byte(0xd);
+		send_byte(0xa);
+		if ((y - 10 - ylength > 10)&!pause){ 
+			y = y - 10; 	
+		}
+		
+	//		fill_frame(0x00ffffff);
+	//	game(x,y);
+		
+
+		STATE = 0x00;
+	} else if (STATE == 0x61) {
+		send_byte('a');
+		send_byte(0xd);
+		send_byte(0xa);
+		if ((x - 10- xlength > 10)&!pause){
+			x = x - 10;
+		}
+	//		fill_frame(0x00ffffff);
+	//	game(x,y);
+		
+
+		STATE = 0x00;
+	} else if (STATE == 0x73) {
+		send_byte('s');
+		send_byte(0xd);
+		send_byte(0xa);
+		if ((y + 10 + ylength < 590)&!pause){
+			y = y + 10;
+		}
+	//		fill_frame(0x00ffffff);
+	//	game(x,y);
+		
+		
+
+		STATE = 0x00;
+	} else if (STATE == 0x64) {
+		send_byte('d');
+		send_byte(0xd);
+		send_byte(0xa);
+		if ((x + 10 + xlength < 790)&!pause){
+			x = x + 10;
+		}
+	//	game(x,y);
+		
+		
+
+		STATE = 0x00;
+	} else if (STATE == 0x6e) {
+		send_byte('n');
+		send_byte(0xd);
+		send_byte(0xa);
+		if (!validshot){
+		x_shot = x;
+		y_shot = y;
+		} 
+		if (!pause){
+		validshot = 1;
+		}
+		STATE = 0x00;
+}
+	else if (STATE == 0x72) {
 		send_byte('r');
 		send_byte(0xd);
 		send_byte(0xa);
@@ -347,7 +457,6 @@ void check_state(){ //up left down right
 		tend = SECONDS;
 		diff = tend - tstart;
 
-		r100M();
 		send_time('r');
 
 		STATE = 0x00;
@@ -400,6 +509,16 @@ void check_state(){ //up left down right
 	}
 }
 
+//better to have b < a
+int mult(int a, int b) {
+	int ret = 0;
+	while (b>=1) {
+		ret = ret + a;
+		b = b - 1;
+	}
+	return ret;
+}
+
 void init_isr() {
 
 	asm("li $t0, 0x1f0000b0");  //seconds
@@ -436,7 +555,7 @@ void init_isr() {
 int div(int a, int b) {
 	int s = 0;
 	while (a >= b) {
-		s++;
+		s = s + 1;
 		a = a-b;
 	}
 	return s;
@@ -448,16 +567,6 @@ int mod(int a, int b) {
 		a = a - b;
 	}
 	return a;
-}
-
-//better to have b < a
-int mult(int a, int b) {
-	int ret = 0;
-	while (b>=1) {
-		ret = ret + a;
-		b = b - 1;
-	}
-	return ret;
 }
 
 void r100M() {
@@ -560,5 +669,4 @@ void send_byte(char b) {
 		asm("nop");
 		//asm("jr $ra");
 }
-
 
