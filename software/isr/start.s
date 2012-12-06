@@ -225,7 +225,7 @@ sw $k0, 0($k1)
 j done
 
 not_e:
-li $k0, 0x64
+li $k0, 0x69
 bne $k1, $k0, not_d
 li $k1, 0x1f0000c8
 sw $0, 0($k1)

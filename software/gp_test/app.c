@@ -18,20 +18,27 @@ void send_byte(char b);
 void draw_line(unsigned int x0,unsigned int y0,unsigned int x1, unsigned int y1, unsigned int color);
 void fill_frame(unsigned int color);
 void check_state();
-void game();
+void game(int x,int y);
 void r100M();
 void R100M();
 void v100M();
 void V100M();
 void addone();
 void init_isr();
+void drawborder();
+void moveshot(int x_shot, int y_shot);
 
 unsigned int* cmd_start;
 int pause;
 int diff;
 int tstart, tend;
+int xlength = 20;
+int ylength = 20;
 
-int x;
+int x, y;
+int x_shot, y_shot;
+int validshot;
+
 
 int main(){
 
@@ -52,15 +59,15 @@ int main(){
 	//now we know we are at top of buffer 0
 	
 
-	x = 0;	
-
+	x = 400;	
+	y = 300;
 	int cur_frame = FRAME_ODD;
 	while(1)  {
 		if (FRAME_ODD == 1) {
 			cmd_start = cmd;
 			check_state();			
 			
-			if (!pause) game();			
+			if (!pause) game(x,y);			
 
 			*cmd_start = 0x00000000; //store the end command
 			GP_FRAME_REG = frame1;
@@ -69,7 +76,7 @@ int main(){
 			cmd_start = cmd;
 			check_state();			
 			
-			if (!pause) game();			
+			if (!pause) game(x,y);			
 
 			*cmd_start = 0x00000000; //store the end command
 			GP_FRAME_REG = frame2;
@@ -98,14 +105,104 @@ void draw_line(unsigned int x0,unsigned int y0,unsigned int x1,unsigned int y1, 
 	cmd_start++;
 }
 
-void game() {
-	fill_frame(0x00ffffff);
-	draw_line(x++, 320, 66, 180, 0x00ff0000);					
+void moveshot(x,y){
+	if ((x_shot + 2 + 5 + 10 < 800) & (y_shot - 2 - 5 - 10 > 0)){
+		x_shot = x_shot + 2;
+		y_shot = y_shot - 2;	
+	}else{
+		validshot = 0;
+	}
+}
+
+void game(x,y){ //up left down right
+	//make target of size 50*50
+			fill_frame(0x00ffffff);
+			drawborder();
+	draw_line(x-1-xlength,y ,x+xlength,y, 0x000000ff);
+	draw_line(x,y-1-ylength ,x,y+ylength, 0x000000ff);
+	moveshot(x_shot,y_shot);
+	if( validshot){
+	draw_line(x_shot,y_shot,x_shot+ 5, y_shot - 5,0xdd0000);
+	}
+}
+void drawborder(){
+	draw_line(10,10,10,590,0);
+	draw_line(11,10,11,590,0); //left
+
+	draw_line(10,590,790,590,0);
+	draw_line(10,589,790,589,0); //bottom
+
+	draw_line(790,590,790,10,0);
+	draw_line(789,590,789,10,0); //right
+
+	draw_line(10,10,790,10,0);
+	draw_line(10,11,790,11,0);//top
 
 }
 
 void check_state(){ //up left down right
-	if (STATE == 0x72) {
+	if (STATE == 0x77) {
+		send_byte('w');
+		send_byte(0xd);
+		send_byte(0xa);
+		if ((y - 10 - ylength > 10)&!pause){ 
+			y = y - 10; 	
+		}
+		
+	//		fill_frame(0x00ffffff);
+	//	game(x,y);
+		
+
+		STATE = 0x00;
+	} else if (STATE == 0x61) {
+		send_byte('a');
+		send_byte(0xd);
+		send_byte(0xa);
+		if ((x - 10- xlength > 10)&!pause){
+			x = x - 10;
+		}
+	//		fill_frame(0x00ffffff);
+	//	game(x,y);
+		
+
+		STATE = 0x00;
+	} else if (STATE == 0x73) {
+		send_byte('s');
+		send_byte(0xd);
+		send_byte(0xa);
+		if ((y + 10 + ylength < 590)&!pause){
+			y = y + 10;
+		}
+	//		fill_frame(0x00ffffff);
+	//	game(x,y);
+		
+		
+
+		STATE = 0x00;
+	} else if (STATE == 0x64) {
+		send_byte('d');
+		send_byte(0xd);
+		send_byte(0xa);
+		if ((x + 10 + xlength < 790)&!pause){
+			x = x + 10;
+		}
+	//	game(x,y);
+		
+		
+
+		STATE = 0x00;
+	} else if (STATE == 0x6e) {
+		send_byte('n');
+		send_byte(0xd);
+		send_byte(0xa);
+		if (!validshot){
+		x_shot = x;
+		y_shot = y;
+		} 
+		validshot = 1;
+		STATE = 0x00;
+}
+	else if (STATE == 0x72) {
 		send_byte('r');
 		send_byte(0xd);
 		send_byte(0xa);
@@ -114,7 +211,6 @@ void check_state(){ //up left down right
 		tend = SECONDS;
 		diff = tend - tstart;
 
-		r100M();
 		send_time('r');
 
 		STATE = 0x00;
