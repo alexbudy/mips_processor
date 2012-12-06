@@ -12,7 +12,7 @@
 
 int div(int a, int b);
 int mod(int a, int b);
-void draw_line(int x0, int y0, int x1, int y1, unsigned int color);
+void draw_line(unsigned int x0,unsigned int y0,unsigned int x1, unsigned int y1, unsigned int color);
 void fill_frame(unsigned int color);
 void game(int w,int a,int s,int d);
 
@@ -34,7 +34,7 @@ int main(){
 	//now we know we are at top of buffer 0
 	
 
-	
+	int x = 0;	
 
 	int cur_frame = FRAME_ODD;
 	while(1)  {
@@ -42,7 +42,8 @@ int main(){
 			cmd_start = cmd;
 
 			fill_frame(0x00ffffff);
-			draw_line(210, 320, 66, 180, 0x00ff0000);					
+			draw_line(x++, 320, 66, 180, 0x00ff0000);					
+			game(0,0,0,0);
 
 			*cmd_start = 0x00000000; //store the end command
 			GP_FRAME_REG = frame1;
@@ -51,7 +52,8 @@ int main(){
 			cmd_start = cmd;
 
 			fill_frame(0x00ffffff);
-			draw_line(210, 320, 66, 180, 0x00ff0000);					
+			draw_line(x++, 320, 66, 180, 0x00ff0000);					
+			game(0,0,0,0);
 
 			*cmd_start = 0x00000000; //store the end command
 			GP_FRAME_REG = frame2;
@@ -66,13 +68,13 @@ int main(){
 }
 
 void fill_frame(unsigned int color) {
-	*cmd_start = (0x01000000 + color);
+	*cmd_start = (0x01000000 + (color & 0x00ffffff));
 	cmd_start++;
 	
 }
 
-void draw_line(int x0, int y0, int x1, int y1, unsigned int color) {
-	*cmd_start = (0x02000000 + color);
+void draw_line(unsigned int x0,unsigned int y0,unsigned int x1,unsigned int y1, unsigned int color) {
+	*cmd_start = (0x02000000 + (color & 0x00ffffff));
 	cmd_start++;
 	*cmd_start = (0x02000000 + (x0 << 16) + y0);
 	cmd_start++;
@@ -82,22 +84,18 @@ void draw_line(int x0, int y0, int x1, int y1, unsigned int color) {
 }
 
 void game(w,a,s,d){ //up left down right
-	fill_frame(0xffffff);
-//border
-	draw_line(0x10,0x10,0x10,0x590,0x0);
-	draw_line(0x11,0x10,0x11,0x590,0x0);
+	//border
+	draw_line(0,0,0,5,0xff);
+	//draw_line(0,0,0,590,0x0);
 
-	draw_line(0x10,0x590,0x790,0x590,0x0);
-	draw_line(0x10,0x589,0x790,0x589,0x0);
+	//draw_line(0,590,790,590,0x0);
+	//draw_line(0x10,0x589,0x790,0x589,0x0);
 
-	draw_line(0x790,0x10,0x790,0x590,0x0);
-	draw_line(0x789,0x10,0x789,0x590,0x0);
+	//draw_line(790,590,790,0,0x0);
+	//draw_line(0x789,0x10,0x789,0x590,0x0);
 
-	draw_line(0x10,0x10,0x790,0x10,0x0);
-	draw_line(0x11,0x10,0x790,0x11,0x0);
-
-
-
+	//draw_line(790,0,0,0,0x0);
+	//draw_line(0x11,0x10,0x790,0x11,0x0);
 }
 
 // a/b, floored
