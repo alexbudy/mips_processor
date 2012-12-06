@@ -36,6 +36,7 @@ int tstart, tend;
 
 int x0, y0, x1, y1;
 int pend_state;
+int color_clock;
 
 void print_time();
 
@@ -44,11 +45,12 @@ int main(){
 	pause = 0;
 
 	x0 = 400;	
-	y0 = 230;	
+	y0 = 150;	
 	x1 = 400;	
-	y1 = 180;	
+	y1 = 100;	
 
-	int pend_state = 0; //0 = inc x0, 1 = dec y0, 2 = dec x0, 3 = inc y0
+	pend_state = 0; //0 = inc x0, 1 = dec y0, 2 = dec x0, 3 = inc y0
+	color_clock = 0x0000ff00;
 	
 	int sec = 0;
 	
@@ -111,17 +113,18 @@ void draw_line(unsigned int x0,unsigned int y0,unsigned int x1,unsigned int y1, 
 void game() {
 	fill_frame(0x00ffffff);
 
-	if (pend_state == 0) x0++;   
-	else if (pend_state == 1) y0--;   
-	else if (pend_state == 2) x0--;   
-	else if (pend_state == 3) y0++;   
+	if (pend_state == 0) x0 = x0 + 1;   
+	else if (pend_state == 1) y0 = y0 - 1;   
+	else if (pend_state == 2) x0 = x0 - 1;   
+	else if (pend_state == 3) y0 = y0 + 1;   
 
-	if ((x0 >= 450) & (pend_state == 0)) pend_state = 1;
-	else if ((y0 <= 130) & (pend_state == 1)) pend_state = 2;
-	else if ((x0 <= 350) & (pend_state == 2)) pend_state = 3;
-	else if ((y0 >= 230) & (pend_state == 0)) pend_state = 0;
+	if ((x0 >= 450) && (pend_state == 0)) pend_state = 1;
+	else if ((y0 <= 50) && (pend_state == 1)) pend_state = 2;
+	else if ((x0 <= 350) && (pend_state == 2)) pend_state = 3;
+	else if ((y0 >= 150) && (pend_state == 3)) pend_state = 0;
 		
-	draw_line(x0, y0, x1, y1, 0x00ff0000);					
+	draw_line(x0, y0, x1, y1, color_clock);					
+	color_clock += 0xf;
 	print_time();
 }
 
