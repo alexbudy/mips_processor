@@ -1,4 +1,4 @@
-#define SECONDS   (*((volatile unsigned int*)0x1f0000bc) & 0xff)
+#define SECONDS   (*((volatile unsigned int*)0x1f0000bc))
 #define frame1	0x10400000
 #define frame2	0x10800000
 #define STATE     (*((volatile unsigned int*)0x1f0000c0))
@@ -11,38 +11,48 @@
 
 #define STATE     (*((volatile unsigned int*)0x1f0000c0))
 
+
 int div(int a, int b);
 int mod(int a, int b);
+int mult(int a, int b);
 void send_time(char c);
 void send_byte(char b);
 void draw_line(unsigned int x0,unsigned int y0,unsigned int x1, unsigned int y1, unsigned int color);
 void fill_frame(unsigned int color);
 void check_state();
-void game(int x,int y);
+void game();
 void r100M();
 void R100M();
 void v100M();
 void V100M();
 void addone();
 void init_isr();
-void drawborder();
-void moveshot(int x_shot, int y_shot);
+void draw_number(int x0, int y0, int num, unsigned int color);
 
 unsigned int* cmd_start;
 int pause;
 int diff;
 int tstart, tend;
-int xlength = 20;
-int ylength = 20;
 
-int x, y;
-int x_shot, y_shot;
-int validshot;
+int x0, y0, x1, y1;
+int pend_state;
+int color_clock;
 
+void print_time();
 
 int main(){
 
 	pause = 0;
+
+	x0 = 400;	
+	y0 = 150;	
+	x1 = 400;	
+	y1 = 100;	
+
+	pend_state = 0; //0 = inc x0, 1 = dec y0, 2 = dec x0, 3 = inc y0
+	color_clock = 0x0000ff00;
+	
+	int sec = 0;
 	
 	init_isr();
 	
@@ -58,16 +68,13 @@ int main(){
 	
 	//now we know we are at top of buffer 0
 	
-
-	x = 400;	
-	y = 300;
 	int cur_frame = FRAME_ODD;
 	while(1)  {
 		if (FRAME_ODD == 1) {
 			cmd_start = cmd;
 			check_state();			
 			
-			if (!pause) game(x,y);			
+			if (!pause) game();			
 
 			*cmd_start = 0x00000000; //store the end command
 			GP_FRAME_REG = frame1;
@@ -76,7 +83,7 @@ int main(){
 			cmd_start = cmd;
 			check_state();			
 			
-			if (!pause) game(x,y);			
+			if (!pause) game();			
 
 			*cmd_start = 0x00000000; //store the end command
 			GP_FRAME_REG = frame2;
@@ -92,7 +99,6 @@ int main(){
 void fill_frame(unsigned int color) {
 	*cmd_start = (0x01000000 + (color & 0x00ffffff));
 	cmd_start++;
-	
 }
 
 void draw_line(unsigned int x0,unsigned int y0,unsigned int x1,unsigned int y1, unsigned int color) {
@@ -100,109 +106,239 @@ void draw_line(unsigned int x0,unsigned int y0,unsigned int x1,unsigned int y1, 
 	cmd_start++;
 	*cmd_start = (0x00000000 + (x0 << 16) + y0);
 	cmd_start++;
-
 	*cmd_start = (0x00000000 + (x1 << 16) + y1);
 	cmd_start++;
 }
 
-void moveshot(x,y){
-	if ((x_shot + 2 + 5 + 10 < 800) & (y_shot - 2 - 5 - 10 > 0)){
-		x_shot = x_shot + 2;
-		y_shot = y_shot - 2;	
-	}else{
-		validshot = 0;
+void game() {
+	fill_frame(0x00ffffff);
+
+	if (pend_state == 0) x0 = x0 + 1;   
+	else if (pend_state == 1) y0 = y0 - 1;   
+	else if (pend_state == 2) x0 = x0 - 1;   
+	else if (pend_state == 3) y0 = y0 + 1;   
+
+	if ((x0 >= 450) && (pend_state == 0)) pend_state = 1;
+	else if ((y0 <= 50) && (pend_state == 1)) pend_state = 2;
+	else if ((x0 <= 350) && (pend_state == 2)) pend_state = 3;
+	else if ((y0 >= 150) && (pend_state == 3)) pend_state = 0;
+		
+	draw_line(x0, y0, x1, y1, color_clock);					
+	color_clock += 0xf;
+	print_time();
+}
+
+void print_time() {
+	if (SECONDS > 999) SECONDS = 0;
+
+	int seconds = SECONDS;
+	
+	int top = div(SECONDS, 100);
+	int lol = mult(100, top);
+	int lol2 = SECONDS - lol;
+	int mid = div(lol2, 10);
+	int bot = mod(SECONDS, 10);
+
+	draw_number(325, 450, top, 0xff);
+	draw_number(375, 450, mid, 0xff);
+	draw_number(425, 450, bot, 0xff);
+}
+
+//each number starts at x0, y0, top corner. numbers should be centered in box
+//50 width, 80 height for now
+void draw_number(int x0, int y0, int num, unsigned int color) {
+	if (num == 0) {
+		//left vert line
+		draw_line(x0+4, y0+6, x0+4, y0+74, color);
+		draw_line(x0+5, y0+5, x0+5, y0+75, color);
+		draw_line(x0+6, y0+6, x0+6, y0+74, color);
+
+		//right vert line
+		draw_line(x0+44, y0+6, x0+44, y0+74, color);
+		draw_line(x0+45, y0+5, x0+45, y0+75, color);
+		draw_line(x0+46, y0+6, x0+46, y0+74, color);
+
+		//top horizontal line
+		draw_line(x0+5, y0+6, x0+45, y0+6, color);
+		draw_line(x0+5, y0+5, x0+45, y0+5, color);
+		draw_line(x0+5, y0+4, x0+45, y0+4, color);
+
+		//bottom horizontal line
+		draw_line(x0+5, y0+74, x0+45, y0+74, color);
+		draw_line(x0+5, y0+75, x0+45, y0+75, color);
+		draw_line(x0+5, y0+76, x0+45, y0+76, color);
+	} else if (num == 1) {
+		draw_line(x0+24, y0+5, x0+24, y0+75, color);
+		draw_line(x0+23, y0+6, x0+23, y0+74, color);
+		draw_line(x0+25, y0+6, x0+25, y0+74, color);
+	} else if (num == 2) {
+		//top horizontal line
+		draw_line(x0+5, y0+6, x0+45, y0+6, color);
+		draw_line(x0+5, y0+5, x0+45, y0+5, color);
+		draw_line(x0+5, y0+4, x0+45, y0+4, color);
+
+		//middle horizontal line
+		draw_line(x0+5, y0+39, x0+45, y0+39, color);
+		draw_line(x0+5, y0+40, x0+45, y0+40, color);
+		draw_line(x0+6, y0+41, x0+45, y0+41, color);
+
+		//bottom horizontal line
+		draw_line(x0+5, y0+74, x0+45, y0+74, color);
+		draw_line(x0+5, y0+75, x0+45, y0+75, color);
+		draw_line(x0+5, y0+76, x0+45, y0+76, color);
+
+		//right vert top-line
+		draw_line(x0+44, y0+6, x0+44, y0+40, color);
+		draw_line(x0+45, y0+5, x0+45, y0+41, color);
+		draw_line(x0+46, y0+6, x0+46, y0+40, color);
+
+		//left vert bot-line
+		draw_line(x0+4, y0+40, x0+4, y0+74, color);
+		draw_line(x0+5, y0+41, x0+5, y0+75, color);
+		draw_line(x0+6, y0+40, x0+6, y0+74, color);
+	} else if (num == 3) {
+		//right vert line
+		draw_line(x0+44, y0+6, x0+44, y0+74, color);
+		draw_line(x0+45, y0+5, x0+45, y0+75, color);
+		draw_line(x0+46, y0+6, x0+46, y0+74, color);
+
+		//top horizontal line
+		draw_line(x0+5, y0+6, x0+45, y0+6, color);
+		draw_line(x0+5, y0+5, x0+45, y0+5, color);
+		draw_line(x0+5, y0+4, x0+45, y0+4, color);
+
+		//bottom horizontal line
+		draw_line(x0+5, y0+74, x0+45, y0+74, color);
+		draw_line(x0+5, y0+75, x0+45, y0+75, color);
+		draw_line(x0+5, y0+76, x0+45, y0+76, color);
+
+		//middle horizontal line
+		draw_line(x0+10, y0+39, x0+45, y0+39, color);
+		draw_line(x0+10, y0+40, x0+45, y0+40, color);
+		draw_line(x0+10, y0+41, x0+45, y0+41, color);
+	} else if (num == 4) {
+		//right vert line
+		draw_line(x0+44, y0+6, x0+44, y0+74, color);
+		draw_line(x0+45, y0+5, x0+45, y0+75, color);
+		draw_line(x0+46, y0+6, x0+46, y0+74, color);
+
+		//middle horizontal line
+		draw_line(x0+5, y0+39, x0+45, y0+39, color);
+		draw_line(x0+5, y0+40, x0+45, y0+40, color);
+		draw_line(x0+6, y0+41, x0+45, y0+41, color);
+
+		//left vert top-line
+		draw_line(x0+4, y0+40, x0+4, y0+6, color);
+		draw_line(x0+5, y0+41, x0+5, y0+5, color);
+		draw_line(x0+6, y0+40, x0+6, y0+6, color);
+	} else if (num == 5) {
+		//top horizontal line
+		draw_line(x0+5, y0+6, x0+45, y0+6, color);
+		draw_line(x0+5, y0+5, x0+45, y0+5, color);
+		draw_line(x0+5, y0+4, x0+45, y0+4, color);
+
+		//middle horizontal line
+		draw_line(x0+5, y0+39, x0+45, y0+39, color);
+		draw_line(x0+5, y0+40, x0+45, y0+40, color);
+		draw_line(x0+5, y0+41, x0+45, y0+41, color);
+
+		//bottom horizontal line
+		draw_line(x0+5, y0+74, x0+45, y0+74, color);
+		draw_line(x0+5, y0+75, x0+45, y0+75, color);
+		draw_line(x0+5, y0+76, x0+45, y0+76, color);
+
+		//right vert bot-line
+		draw_line(x0+44, y0+40, x0+44, y0+74, color);
+		draw_line(x0+45, y0+39, x0+45, y0+75, color);
+		draw_line(x0+46, y0+40, x0+46, y0+74, color);
+
+		//left vert top-line
+		draw_line(x0+4, y0+40, x0+4, y0+6, color);
+		draw_line(x0+5, y0+41, x0+5, y0+5, color);
+		draw_line(x0+6, y0+40, x0+6, y0+6, color);
+	} else if (num == 6) {
+		//left vert line
+		draw_line(x0+4, y0+6, x0+4, y0+74, color);
+		draw_line(x0+5, y0+5, x0+5, y0+75, color);
+		draw_line(x0+6, y0+6, x0+6, y0+74, color);
+
+		//right vert bot-line
+		draw_line(x0+44, y0+40, x0+44, y0+74, color);
+		draw_line(x0+45, y0+39, x0+45, y0+75, color);
+		draw_line(x0+46, y0+40, x0+46, y0+74, color);
+
+		//bottom horizontal line
+		draw_line(x0+5, y0+74, x0+45, y0+74, color);
+		draw_line(x0+5, y0+75, x0+45, y0+75, color);
+		draw_line(x0+5, y0+76, x0+45, y0+76, color);
+
+		//middle horizontal line
+		draw_line(x0+5, y0+39, x0+45, y0+39, color);
+		draw_line(x0+5, y0+40, x0+45, y0+40, color);
+		draw_line(x0+5, y0+41, x0+45, y0+41, color);
+	} else if (num == 7) {
+		//right vert line
+		draw_line(x0+44, y0+6, x0+44, y0+74, color);
+		draw_line(x0+45, y0+5, x0+45, y0+75, color);
+		draw_line(x0+46, y0+6, x0+46, y0+74, color);
+
+		//top horizontal line
+		draw_line(x0+5, y0+6, x0+45, y0+6, color);
+		draw_line(x0+5, y0+5, x0+45, y0+5, color);
+		draw_line(x0+5, y0+4, x0+45, y0+4, color);
+	} else if (num == 8) {
+		//left vert line
+		draw_line(x0+4, y0+6, x0+4, y0+74, color);
+		draw_line(x0+5, y0+5, x0+5, y0+75, color);
+		draw_line(x0+6, y0+6, x0+6, y0+74, color);
+
+		//right vert line
+		draw_line(x0+44, y0+6, x0+44, y0+74, color);
+		draw_line(x0+45, y0+5, x0+45, y0+75, color);
+		draw_line(x0+46, y0+6, x0+46, y0+74, color);
+
+		//top horizontal line
+		draw_line(x0+5, y0+6, x0+45, y0+6, color);
+		draw_line(x0+5, y0+5, x0+45, y0+5, color);
+		draw_line(x0+5, y0+4, x0+45, y0+4, color);
+
+		//bottom horizontal line
+		draw_line(x0+5, y0+74, x0+45, y0+74, color);
+		draw_line(x0+5, y0+75, x0+45, y0+75, color);
+		draw_line(x0+5, y0+76, x0+45, y0+76, color);
+
+		//middle horizontal line
+		draw_line(x0+5, y0+39, x0+45, y0+39, color);
+		draw_line(x0+5, y0+40, x0+45, y0+40, color);
+		draw_line(x0+5, y0+41, x0+45, y0+41, color);
+	} else if (num == 9) {
+		//top horizontal line
+		draw_line(x0+5, y0+6, x0+45, y0+6, color);
+		draw_line(x0+5, y0+5, x0+45, y0+5, color);
+		draw_line(x0+5, y0+4, x0+45, y0+4, color);
+
+		//right vert line
+		draw_line(x0+44, y0+6, x0+44, y0+74, color);
+		draw_line(x0+45, y0+5, x0+45, y0+75, color);
+		draw_line(x0+46, y0+6, x0+46, y0+74, color);
+
+		//middle horizontal line
+		draw_line(x0+5, y0+39, x0+45, y0+39, color);
+		draw_line(x0+5, y0+40, x0+45, y0+40, color);
+		draw_line(x0+6, y0+41, x0+45, y0+41, color);
+
+		//left vert top-line
+		draw_line(x0+4, y0+40, x0+4, y0+6, color);
+		draw_line(x0+5, y0+41, x0+5, y0+5, color);
+		draw_line(x0+6, y0+40, x0+6, y0+6, color);
+
 	}
-}
-
-void game(x,y){ //up left down right
-	//make target of size 50*50
-			fill_frame(0x00ffffff);
-			drawborder();
-	draw_line(x-1-xlength,y ,x+xlength,y, 0x000000ff);
-	draw_line(x,y-1-ylength ,x,y+ylength, 0x000000ff);
-	moveshot(x_shot,y_shot);
-	if( validshot){
-	draw_line(x_shot,y_shot,x_shot+ 5, y_shot - 5,0xdd0000);
-	}
-}
-void drawborder(){
-	draw_line(10,10,10,590,0);
-	draw_line(11,10,11,590,0); //left
-
-	draw_line(10,590,790,590,0);
-	draw_line(10,589,790,589,0); //bottom
-
-	draw_line(790,590,790,10,0);
-	draw_line(789,590,789,10,0); //right
-
-	draw_line(10,10,790,10,0);
-	draw_line(10,11,790,11,0);//top
 
 }
+
 
 void check_state(){ //up left down right
-	if (STATE == 0x77) {
-		send_byte('w');
-		send_byte(0xd);
-		send_byte(0xa);
-		if ((y - 10 - ylength > 10)&!pause){ 
-			y = y - 10; 	
-		}
-		
-	//		fill_frame(0x00ffffff);
-	//	game(x,y);
-		
-
-		STATE = 0x00;
-	} else if (STATE == 0x61) {
-		send_byte('a');
-		send_byte(0xd);
-		send_byte(0xa);
-		if ((x - 10- xlength > 10)&!pause){
-			x = x - 10;
-		}
-	//		fill_frame(0x00ffffff);
-	//	game(x,y);
-		
-
-		STATE = 0x00;
-	} else if (STATE == 0x73) {
-		send_byte('s');
-		send_byte(0xd);
-		send_byte(0xa);
-		if ((y + 10 + ylength < 590)&!pause){
-			y = y + 10;
-		}
-	//		fill_frame(0x00ffffff);
-	//	game(x,y);
-		
-		
-
-		STATE = 0x00;
-	} else if (STATE == 0x64) {
-		send_byte('d');
-		send_byte(0xd);
-		send_byte(0xa);
-		if ((x + 10 + xlength < 790)&!pause){
-			x = x + 10;
-		}
-	//	game(x,y);
-		
-		
-
-		STATE = 0x00;
-	} else if (STATE == 0x6e) {
-		send_byte('n');
-		send_byte(0xd);
-		send_byte(0xa);
-		if (!validshot){
-		x_shot = x;
-		y_shot = y;
-		} 
-		validshot = 1;
-		STATE = 0x00;
-}
-	else if (STATE == 0x72) {
+	if (STATE == 0x72) {
 		send_byte('r');
 		send_byte(0xd);
 		send_byte(0xa);
@@ -211,6 +347,7 @@ void check_state(){ //up left down right
 		tend = SECONDS;
 		diff = tend - tstart;
 
+		r100M();
 		send_time('r');
 
 		STATE = 0x00;
@@ -298,7 +435,7 @@ void init_isr() {
 // a/b, floored
 int div(int a, int b) {
 	int s = 0;
-	while (a > b) {
+	while (a >= b) {
 		s++;
 		a = a-b;
 	}
@@ -311,6 +448,16 @@ int mod(int a, int b) {
 		a = a - b;
 	}
 	return a;
+}
+
+//better to have b < a
+int mult(int a, int b) {
+	int ret = 0;
+	while (b>=1) {
+		ret = ret + a;
+		b = b - 1;
+	}
+	return ret;
 }
 
 void r100M() {
@@ -413,4 +560,5 @@ void send_byte(char b) {
 		asm("nop");
 		//asm("jr $ra");
 }
+
 
