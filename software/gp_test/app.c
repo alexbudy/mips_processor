@@ -64,7 +64,7 @@ int main(){
 
 	int cur_frame = FRAME_ODD;
 	while(1)  {
-		if (FRAME_ODD == 0) {
+		if (FRAME_ODD == 1) {
 			cmd_start = cmd;
 
 			fill_frame(0x00ffffff);
@@ -110,17 +110,17 @@ void draw_line(unsigned int x0,unsigned int y0,unsigned int x1,unsigned int y1, 
 
 void game(w,a,s,d){ //up left down right
 	//border
-	draw_line(0,0,0,5,0xff);
-	//draw_line(0,0,0,590,0x0);
+	draw_line(10,10,10,590,0);
+	draw_line(11,10,11,590,0); //left
 
-	//draw_line(0,590,790,590,0x0);
-	//draw_line(0x10,0x589,0x790,0x589,0x0);
+	draw_line(10,590,790,590,0);
+	draw_line(10,589,790,589,0); //bottom
 
-	//draw_line(790,590,790,0,0x0);
-	//draw_line(0x789,0x10,0x789,0x590,0x0);
+	draw_line(790,590,790,10,0);
+	draw_line(789,590,789,10,0); //right
 
-	//draw_line(790,0,0,0,0x0);
-	//draw_line(0x11,0x10,0x790,0x11,0x0);
+	draw_line(10,10,790,10,0);
+	draw_line(10,11,790,11,0);//top
 }
 
 // a/b, floored
