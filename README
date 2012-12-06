@@ -24,6 +24,8 @@ GP_frame_reg: 80000040
 GP_code_reg:  80000030
 frame_count:  80000050 (if even, frame is 1040)
 
+store GP insts: 0x1001_0000
+
 spec broken down:
 isr resides in start.s (isr folder) 
 
